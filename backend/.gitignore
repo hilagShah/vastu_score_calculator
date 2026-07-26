@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Environment Variables & Secrets
+.env
+
+# Uploads directory
+uploads/*
+!uploads/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# OS & IDE
+.DS_Store
+.vscode/
+.idea/

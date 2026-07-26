@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #f8fafc;
+    color: #0f172a;
+    @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(79, 70, 229, 0.15);
+    color: #1e1b4b;
+  }
+}
+
+@layer components {
+  /* Professional Light Buttons */
+  .btn-primary {
+    @apply relative overflow-hidden font-semibold px-6 py-3 rounded-xl text-white transition-all duration-200 transform active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.35);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #4338ca, #3730a3);
+    box-shadow: 0 6px 20px 0 rgba(79, 70, 229, 0.45);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    @apply font-semibold px-6 py-3 rounded-xl transition-all duration-200 transform active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+  .btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .btn-terracotta {
+    @apply relative overflow-hidden font-semibold px-6 py-3 rounded-xl text-white transition-all duration-200 transform active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
+    background: linear-gradient(135deg, #e11d48, #be123c);
+    box-shadow: 0 4px 14px 0 rgba(225, 29, 72, 0.35);
+  }
+  .btn-terracotta:hover {
+    background: linear-gradient(135deg, #be123c, #9f1239);
+    box-shadow: 0 6px 20px 0 rgba(225, 29, 72, 0.45);
+    transform: translateY(-1px);
+  }
+
+  /* Professional Card Utilities */
+  .card-glass {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  }
+
+  .card-vastu {
+    @apply card-glass p-6 rounded-2xl;
+  }
+
+  /* Professional Inputs */
+  .input-minimalist {
+    width: 100%;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #0f172a;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    @apply font-sans focus:outline-none;
+  }
+  .input-minimalist:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  }
+  .input-minimalist::placeholder {
+    color: #94a3b8;
+  }
+
+  /* Select Option Styles */
+  select.input-minimalist option {
+    background: #ffffff;
+    color: #0f172a;
+    padding: 8px;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #1e1b4b, #4f46e5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-warm {
+    background: linear-gradient(135deg, #e11d48, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-cool {
+    background: linear-gradient(135deg, #0f172a, #0284c7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
