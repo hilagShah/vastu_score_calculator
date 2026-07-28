@@ -3,6 +3,7 @@ import axios from 'axios';
 import { User, Mail, Phone, ChevronRight, ChevronLeft, Loader2, Sparkles, Layout, Plus, Trash2 } from 'lucide-react';
 import StepProgressBar from '../components/StepProgressBar';
 import DirectionSelect from '../components/DirectionSelect';
+import { getApiUrl } from '../utils/apiUrl';
 
 const CalculatorForm = ({ onComplete }) => {
   const [step, setStep] = useState(1);
@@ -26,9 +27,10 @@ const CalculatorForm = ({ onComplete }) => {
     staircaseBalcony: 'SW',
   });
 
-  // Multiple Bedrooms / Bathrooms states
+  // Multiple Bedrooms / Bathrooms / Kitchens states
   const [additionalBedrooms, setAdditionalBedrooms] = useState([]);
   const [additionalBathrooms, setAdditionalBathrooms] = useState([]);
+  const [additionalKitchens, setAdditionalKitchens] = useState([]);
 
   // Scroll to top on step change
   useEffect(() => {
@@ -73,6 +75,23 @@ const CalculatorForm = ({ onComplete }) => {
     });
   };
 
+  // Additional Kitchens handlers
+  const addKitchen = () => {
+    setAdditionalKitchens((prev) => [...prev, 'NW']);
+  };
+
+  const removeKitchen = (index) => {
+    setAdditionalKitchens((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAdditionalKitchenChange = (index, value) => {
+    setAdditionalKitchens((prev) => {
+      const newKitchens = [...prev];
+      newKitchens[index] = value;
+      return newKitchens;
+    });
+  };
+
   const handleNext = (e) => {
     e.preventDefault();
     if (step === 1) {
@@ -108,13 +127,11 @@ const CalculatorForm = ({ onComplete }) => {
       ...directions,
       additionalBedrooms,
       additionalBathrooms,
+      additionalKitchens,
     };
 
     try {
-      // Determine API endpoint safely for localhost, 127.0.0.1, or custom ports
-      const hostname = window.location.hostname || 'localhost';
-      const API_URL = window.location.port ? `${window.location.protocol}//${hostname}:5001` : '';
-      
+      const API_URL = getApiUrl();
       const response = await axios.post(`${API_URL}/api/reports`, payload, {
         headers: {
           'Content-Type': 'application/json',
@@ -256,6 +273,45 @@ const CalculatorForm = ({ onComplete }) => {
               value={directions.kitchen}
               onChange={(val) => handleDirectionChange('kitchen', val)}
             />
+
+            {/* Additional Kitchens list */}
+            <div className="pt-4 border-t border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Additional Kitchens ({additionalKitchens.length})
+                </label>
+              </div>
+
+              {additionalKitchens.map((kitchenDir, idx) => (
+                <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 animate-scale-in">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-slate-800">
+                      🍳 Kitchen {idx + 2}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeKitchen(idx)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <DirectionSelect
+                    label={`Kitchen ${idx + 2} Location`}
+                    value={kitchenDir}
+                    onChange={(val) => handleAdditionalKitchenChange(idx, val)}
+                  />
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addKitchen}
+                className="flex items-center justify-center gap-2 text-xs font-bold text-indigo-600 border border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 py-3 px-4 rounded-xl transition-colors cursor-pointer w-full"
+              >
+                <Plus className="w-4 h-4" /> Add Kitchen
+              </button>
+            </div>
 
             <DirectionSelect
               label="Master Bedroom Location *"

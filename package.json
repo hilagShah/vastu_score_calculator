@@ -1,0 +1,19 @@
+{
+  "name": "vastu-score-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vastu Score Calculator Monorepo Root for Vercel Deployment",
+  "scripts": {
+    "build": "npm install --prefix frontend && npm run build --prefix frontend",
+    "start": "npm start --prefix backend",
+    "dev": "bash start-app.sh"
+  },
+  "dependencies": {
+    "cloudinary": "^1.41.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mongoose": "^8.0.3",
+    "multer": "^1.4.5-lts.1"
+  }
+}

@@ -9,6 +9,7 @@ const calculateVastuScoreDetails = (inputs) => {
   const {
     mainEntrance,
     kitchen,
+    additionalKitchens = [],
     masterBedroom,
     additionalBedrooms = [],
     bathroom,
@@ -41,16 +42,29 @@ const calculateVastuScoreDetails = (inputs) => {
   baseScore += entranceScore;
   breakdown.entrance = { score: Math.round(entranceScore * 10) / 10, max: 20, status: getStatus(entranceRatio) };
 
-  // b) Kitchen Zone (Max 15 pts)
-  let kitchenRatio = 0.0;
-  if (kitchen === 'SE') kitchenRatio = 1.0;
-  else if (kitchen === 'NW') kitchenRatio = 0.75;
-  else if (['E', 'W', 'S'].includes(kitchen)) kitchenRatio = 0.5;
-  else if (['N', 'SW', 'NE'].includes(kitchen)) kitchenRatio = 0.0;
-  
-  const kitchenScore = 15 * kitchenRatio;
+  // b) Kitchen Zone & Additional Kitchens (Max 15 pts)
+  const getKitchenRatio = (dir) => {
+    if (dir === 'SE') return 1.0;
+    if (dir === 'NW') return 0.75;
+    if (['E', 'W', 'S'].includes(dir)) return 0.5;
+    if (['N', 'SW', 'NE'].includes(dir)) return 0.0;
+    return 0.5;
+  };
+
+  const mainKitchenRatio = getKitchenRatio(kitchen);
+  let totalKitchenRatioSum = mainKitchenRatio;
+
+  if (additionalKitchens && additionalKitchens.length > 0) {
+    additionalKitchens.forEach(kitchenDir => {
+      totalKitchenRatioSum += getKitchenRatio(kitchenDir);
+    });
+  }
+
+  const kitchenCount = 1 + (additionalKitchens ? additionalKitchens.length : 0);
+  const averageKitchenRatio = totalKitchenRatioSum / kitchenCount;
+  const kitchenScore = 15 * averageKitchenRatio;
   baseScore += kitchenScore;
-  breakdown.kitchen = { score: Math.round(kitchenScore * 10) / 10, max: 15, status: getStatus(kitchenRatio) };
+  breakdown.kitchen = { score: Math.round(kitchenScore * 10) / 10, max: 15, status: getStatus(averageKitchenRatio) };
 
   // c) Master Bedroom & Additional Bedrooms Zone (Max 15 pts)
   const getBedroomRatio = (dir) => {

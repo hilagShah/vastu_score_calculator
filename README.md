@@ -64,3 +64,30 @@ npm run dev
 ```
 
 Open your browser and navigate to **[http://localhost:5173](http://localhost:5173)** to use the application!
+
+---
+
+## Deploying to Vercel
+
+This repository is pre-configured for seamless deployment to **Vercel** as a full-stack project using Vercel Serverless Functions and Vite Static Assets.
+
+### Option A: Deploy via GitHub & Vercel Dashboard (Recommended)
+
+1. **Push your code** to GitHub.
+2. Go to [Vercel Dashboard](https://vercel.com/new) and select **Import Repository**.
+3. Keep the **Root Directory** as `./` (default).
+4. Add your **Environment Variables** under Project Settings > Environment Variables:
+   - `MONGO_URI` (MongoDB Atlas Connection String, e.g. `mongodb+srv://<user>:<password>@cluster.mongodb.net/vastu_score?retryWrites=true&w=majority`)
+   - `CLOUDINARY_CLOUD_NAME` (Optional for image storage)
+   - `CLOUDINARY_API_KEY` (Optional)
+   - `CLOUDINARY_API_SECRET` (Optional)
+5. Click **Deploy**. Vercel will build the frontend dist and serve both the static web app and `/api/*` serverless backend endpoints live!
+
+### Option B: Deploy via Vercel CLI
+
+```bash
+npm install -g vercel
+vercel login
+vercel --prod
+```
+

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getApiUrl } from '../utils/apiUrl';
 import { Phone, Mail, Clock, RefreshCw, CheckCircle2, AlertCircle, Trash2, Video, UserCheck, PhoneCall, Filter, Sparkles, Building2 } from 'lucide-react';
 
 const ConsultantPortal = ({ onClose }) => {
@@ -12,8 +13,7 @@ const ConsultantPortal = ({ onClose }) => {
     setLoading(true);
     setError('');
     try {
-      const hostname = window.location.hostname || 'localhost';
-      const API_URL = window.location.port ? `${window.location.protocol}//${hostname}:5001` : '';
+      const API_URL = getApiUrl();
       const res = await axios.get(`${API_URL}/api/consultations`);
       if (res.data?.success) {
         setRequests(res.data.data || []);
@@ -32,8 +32,7 @@ const ConsultantPortal = ({ onClose }) => {
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      const hostname = window.location.hostname || 'localhost';
-      const API_URL = window.location.port ? `${window.location.protocol}//${hostname}:5001` : '';
+      const API_URL = getApiUrl();
       await axios.patch(`${API_URL}/api/consultations/${id}`, { status: newStatus });
       setRequests(prev => prev.map(r => r._id === id ? { ...r, status: newStatus } : r));
     } catch (err) {
@@ -45,8 +44,7 @@ const ConsultantPortal = ({ onClose }) => {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this consultation request?')) return;
     try {
-      const hostname = window.location.hostname || 'localhost';
-      const API_URL = window.location.port ? `${window.location.protocol}//${hostname}:5001` : '';
+      const API_URL = getApiUrl();
       await axios.delete(`${API_URL}/api/consultations/${id}`);
       setRequests(prev => prev.filter(r => r._id !== id));
     } catch (err) {

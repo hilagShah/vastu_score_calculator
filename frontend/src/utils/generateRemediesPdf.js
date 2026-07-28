@@ -1,6 +1,6 @@
 /**
  * Multi-lingual Vastu Remedies PDF Generator
- * Direct PDF Download (No about:blank window)
+ * Uses browser print-to-PDF on a full-page overlay (guaranteed non-empty output)
  */
 
 const translations = {
@@ -88,17 +88,18 @@ const translations = {
 };
 
 const buildDefaultRemediesText = ({ language = 'en', totalScore = 70, tier = 'Moderate', inputs = {}, criticalDoshas = [], defects = [] }) => {
+  const additionalBedrooms = inputs.additionalBedrooms || [];
+  const additionalBathrooms = inputs.additionalBathrooms || [];
+  const additionalKitchens = inputs.additionalKitchens || [];
+
   if (language === 'hi') {
     const remedies = [];
-    remedies.push(`1. मुख्य वास्तु विश्लेषण:
-आपकी संपत्ति ने 100 में से ${totalScore} का वास्तु स्कोर प्राप्त किया है। बुनियादी वास्तु दिशाएं अनुकूल हैं, फिर भी बिना किसी तोड़-फोड़ के सकारात्मक ऊर्जा प्रवाह बढ़ाने हेतु निम्नलिखित उपाय सुझाए जाते हैं।`);
+    remedies.push(`1. मुख्य वास्तु विश्लेषण:\nआपकी संपत्ति ने 100 में से ${totalScore} का वास्तु स्कोर प्राप्त किया है। बुनियादी वास्तु दिशाएं अनुकूल हैं, फिर भी बिना किसी तोड़-फोड़ के सकारात्मक ऊर्जा प्रवाह बढ़ाने हेतु निम्नलिखित उपाय सुझाए जाते हैं।`);
 
     if (criticalDoshas && criticalDoshas.length > 0) {
-      remedies.push(`2. गंभीर वास्तु दोष निवारण:
-${criticalDoshas.map(d => `• [${d}]: चौखट के नीचे 3mm तांबे की पट्टी लगाएं। प्रभावित कोने में 9 सीसा पिरामिड स्थापित करें।`).join('\n')}`);
+      remedies.push(`2. गंभीर वास्तु दोष निवारण:\n${criticalDoshas.map(d => `• [${d}]: चौखट के नीचे 3mm तांबे की पट्टी लगाएं। प्रभावित कोने में 9 सीसा पिरामिड स्थापित करें।`).join('\n')}`);
     } else {
-      remedies.push(`2. गंभीर वास्तु दोष निवारण:
-• कोई गंभीर संरचनात्मक दोष (ईशान/नैऋत्य दिशा clash) नहीं पाया गया। मुख्य ऊर्जा क्षेत्र सुरक्षित हैं।`);
+      remedies.push(`2. गंभीर वास्तु दोष निवारण:\n• कोई गंभीर संरचनात्मक दोष (ईशान/नैऋत्य दिशा clash) नहीं पाया गया। मुख्य ऊर्जा क्षेत्र सुरक्षित हैं।`);
     }
 
     const roomRemedies = [];
@@ -109,43 +110,62 @@ ${criticalDoshas.map(d => `• [${d}]: चौखट के नीचे 3mm त�
 
     const kitchen = inputs.kitchen || 'SE';
     if (kitchen !== 'SE') {
-      roomRemedies.push(`• रसोई घर (${kitchen}): गैस चूल्हे के नीचे पीला जैसलमेर संगमरमर का पत्थर रखें। रसोई में नीले या काले रंग का उपयोग न करें।`);
+      roomRemedies.push(`• मुख्य रसोई घर (${kitchen}): गैस चूल्हे के नीचे पीला जैसलमेर संगमरमर का पत्थर रखें। रसोई में नीले या काले रंग का उपयोग न करें।`);
     } else {
-      roomRemedies.push(`• रसोई घर (दक्षिण-पूर्व): आदर्श अग्नि कोण! रसोई को साफ रखें और पूर्व दिशा की ओर मुंह करके खाना बनाएं।`);
+      roomRemedies.push(`• मुख्य रसोई घर (दक्षिण-पूर्व): आदर्श अग्नि कोण! रसोई को साफ रखें और पूर्व दिशा की ओर मुंह करके खाना बनाएं।`);
     }
+
+    additionalKitchens.forEach((dir, idx) => {
+      if (dir !== 'SE') {
+        roomRemedies.push(`• रसोई ${idx + 2} (${dir}): गैस चूल्हे के नीचे पीला संगमरमर रखें। अग्नि तत्व संतुलन के लिए दक्षिण-पूर्व कोने में लाल बल्ब लगाएं।`);
+      } else {
+        roomRemedies.push(`• रसोई ${idx + 2} (दक्षिण-पूर्व): उत्तम अग्नि कोण स्थान! स्वच्छता बनाए रखें।`);
+      }
+    });
 
     const bedroom = inputs.masterBedroom || 'SW';
     if (bedroom !== 'SW') {
       roomRemedies.push(`• मुख्य शयनकक्ष (${bedroom}): सोते समय सिर दक्षिण या पश्चिम दिशा की ओर रखें। लोहे के बजाय लकड़ी के बिस्तर का प्रयोग करें।`);
     }
 
+    additionalBedrooms.forEach((dir, idx) => {
+      if (dir !== 'SW' && !['S', 'W'].includes(dir)) {
+        roomRemedies.push(`• शयनकक्ष ${idx + 2} (${dir}): सोते समय सिर दक्षिण दिशा में रखें। दीवारों पर हल्के पीले या क्रीम रंग का उपयोग करें। लोहे के पलंग से बचें।`);
+      } else {
+        roomRemedies.push(`• शयनकक्ष ${idx + 2} (${dir}): अच्छी दिशा! गहरे रंग की पर्दे लगाएं और शांत वातावरण बनाए रखें।`);
+      }
+    });
+
     const bathroom = inputs.bathroom || 'NW';
     if (bathroom === 'NE') {
-      roomRemedies.push(`• शौचालय (उत्तर-पूर्व): दरवाजे की चौखट पर तांबे की पट्टी लगाएं। अंदर कांच के बर्तन में समुद्री नमक रखें और दरवाजा हमेशा बंद रखें।`);
+      roomRemedies.push(`• मुख्य शौचालय (उत्तर-पूर्व): दरवाजे की चौखट पर तांबे की पट्टी लगाएं। अंदर कांच के बर्तन में समुद्री नमक रखें और दरवाजा हमेशा बंद रखें।`);
+    } else if (!['NW', 'W'].includes(bathroom)) {
+      roomRemedies.push(`• मुख्य शौचालय (${bathroom}): दरवाजा हमेशा बंद रखें। वेंटिलेशन के लिए एग्जॉस्ट फैन लगाएं।`);
     }
 
-    remedies.push(`3. कमरों एवं दिशाओं के विशेष उपाय:
-${roomRemedies.join('\n')}`);
+    additionalBathrooms.forEach((dir, idx) => {
+      if (dir === 'NE') {
+        roomRemedies.push(`• शौचालय ${idx + 2} (उत्तर-पूर्व): ⚠️ गंभीर दोष! चौखट के नीचे तांबे की पट्टी लगाएं। अंदर कांच के बर्तन में समुद्री नमक रखें। दरवाजा हमेशा बंद रखें।`);
+      } else if (!['NW', 'W'].includes(dir)) {
+        roomRemedies.push(`• शौचालय ${idx + 2} (${dir}): दरवाजा बंद रखें और वेंटिलेशन सुनिश्चित करें। नीले रंग की टाइल्स से बचें।`);
+      } else {
+        roomRemedies.push(`• शौचालय ${idx + 2} (${dir}): अनुकूल दिशा! स्वच्छता बनाए रखें।`);
+      }
+    });
 
-    remedies.push(`4. सामान्य ऊर्जा संतुलन उपाय:
-• उत्तर-पूर्व (ईशान) बालकनी में हरा तुलसी का पौधा लगाएं।
-• शाम के समय कपूर और लौंग का धुंआ करें जिससे नकारात्मक ऊर्जा समाप्त हो।
-• उत्तर-पश्चिम बालकनी में 6 छड़ों वाली पीतल की विंड चाइम लगाएं।`);
-
+    remedies.push(`3. कमरों एवं दिशाओं के विशेष उपाय:\n${roomRemedies.join('\n')}`);
+    remedies.push(`4. सामान्य ऊर्जा संतुलन उपाय:\n• उत्तर-पूर्व (ईशान) बालकनी में हरा तुलसी का पौधा लगाएं।\n• शाम के समय कपूर और लौंग का धुंआ करें जिससे नकारात्मक ऊर्जा समाप्त हो।\n• उत्तर-पश्चिम बालकनी में 6 छड़ों वाली पीतल की विंड चाइम लगाएं।`);
     return remedies.join('\n\n');
   }
 
   if (language === 'gu') {
     const remedies = [];
-    remedies.push(`1. મુખ્યાત્મક વાસ્તુ વિશ્લેષણ:
-તમારી મિલકતે 100 માંથી ${totalScore} નો વાસ્તુ સ્કોર મેળવ્યો છે. પ્રાથમિક દિશાઓ અનુકૂળ છે, છતાં પણ કોઈ પણ તોડફોડ વિના હકારાત્મક ઊર્જા વધારવા માટે નીચે મુજબના ઉપાયો સૂચવવામાં આવે છે.`);
+    remedies.push(`1. મુખ્યાત્મક વાસ્તુ વિશ્લેષણ:\nતમારી મિલકતે 100 માંથી ${totalScore} નો વાસ્તુ સ્કોર મેળવ્યો છે. પ્રાથમિક દિશાઓ અનુકૂળ છે, છતાં પણ કોઈ પણ તોડફોડ વિના હકારાત્મક ઊર્જા વધારવા માટે નીચે મુજબના ઉપાયો સૂચવવામાં આવે છે.`);
 
     if (criticalDoshas && criticalDoshas.length > 0) {
-      remedies.push(`2. ગંભીર વાસ્તુ દોષ નિવારણ:
-${criticalDoshas.map(d => `• [${d}]: ઉંબરા નીચે 3mm તાંબાની પટ્ટી લગાવો. અસરગ્રસ્ત ખૂણામાં 9 સીસા (Lead) પિરામિડ સ્થાપિત કરો.`).join('\n')}`);
+      remedies.push(`2. ગંભીર વાસ્તુ દોષ નિવારણ:\n${criticalDoshas.map(d => `• [${d}]: ઉંબરા નીચે 3mm તાંબાની પટ્ટી લગાવો. અસરગ્રસ્ત ખૂણામાં 9 સીસા (Lead) પિરામિડ સ્થાપિત કરો.`).join('\n')}`);
     } else {
-      remedies.push(`2. ગંભીર વાસ્તુ દોષ નિવારણ:
-• કોઈ ગંભીર માળખાકીય દોષ (ઈશાન/નૈઋત્ય ક્લેશ) મળ્યો નથી. મુખ્ય ઊર્જા ક્ષેત્રો સુરક્ષિત છે.`);
+      remedies.push(`2. ગંભીર વાસ્તુ દોષ નિવારણ:\n• કોઈ ગંભીર માળખાકીય દોષ (ઈશાન/નૈઋત્ય ક્લેશ) મળ્યો નથી. મુખ્ય ઊર્જા ક્ષેત્રો સુરક્ષિત છે.`);
     }
 
     const roomRemedies = [];
@@ -156,43 +176,62 @@ ${criticalDoshas.map(d => `• [${d}]: ઉંબરા નીચે 3mm તા�
 
     const kitchen = inputs.kitchen || 'SE';
     if (kitchen !== 'SE') {
-      roomRemedies.push(`• રસોડું (${kitchen}): ગેસ સગડી નીચે પીળો જેસલમેર આરસપહાણનો પથ્થર મૂકો. રસોડામાં કાળા કે વાદળી રંગનો ઉપયોગ ટાળો.`);
+      roomRemedies.push(`• મુખ્ય રસોડું (${kitchen}): ગેસ સગડી નીચે પીળો જેસલમેર આરસપહાણનો પથ્થર મૂકો. રસોડામાં કાળા કે વાદળી રંગનો ઉપયોગ ટાળો.`);
     } else {
-      roomRemedies.push(`• રસોડું (દક્ષિણ-પૂર્વ): ઉત્તમ અગ્નિ કોણ સ્થાન! રસોડું સ્વચ્છ રાખો અને પૂર્વ દિશા તરફ મુખ રાખીને રસોઈ બનાવો.`);
+      roomRemedies.push(`• મુખ્ય રસોડું (દક્ષિણ-પૂર્વ): ઉત્તમ અગ્નિ કોણ સ્થાન! રસોડું સ્વચ્છ રાખો અને પૂર્વ દિશા તરફ મુખ રાખીને રસોઈ બનાવો.`);
     }
+
+    additionalKitchens.forEach((dir, idx) => {
+      if (dir !== 'SE') {
+        roomRemedies.push(`• રસોડું ${idx + 2} (${dir}): ગેસ સગડી નીચે પીળો આરસપહાણ મૂકો. અગ્નિ તત્વ સંતુલન માટે દક્ષિણ-પૂર્વ ખૂણામાં લાલ બલ્બ લગાવો.`);
+      } else {
+        roomRemedies.push(`• રસોડું ${idx + 2} (દક્ષિણ-પૂર્વ): ઉત્તમ અગ્નિ કોણ! સ્વચ્છતા જાળવો.`);
+      }
+    });
 
     const bedroom = inputs.masterBedroom || 'SW';
     if (bedroom !== 'SW') {
       roomRemedies.push(`• મુખ્ય બેડરૂમ (${bedroom}): સુતી વખતે માથું દક્ષિણ કે પશ્ચિમ દિશામાં રાખો. લાકડાના પલંગનો જ ઉપયોગ કરો.`);
     }
 
+    additionalBedrooms.forEach((dir, idx) => {
+      if (dir !== 'SW' && !['S', 'W'].includes(dir)) {
+        roomRemedies.push(`• બેડરૂમ ${idx + 2} (${dir}): સુતી વખતે માથું દક્ષિણ દિશામાં રાખો. દીવાલો પર આછો પીળો કે ક્રીમ રંગ વાપરો. લોખંડના પલંગ ટાળો.`);
+      } else {
+        roomRemedies.push(`• બેડરૂમ ${idx + 2} (${dir}): સારી દિશા! ઘેરા રંગના પડદા લગાવો અને શાંત વાતાવરણ જાળવો.`);
+      }
+    });
+
     const bathroom = inputs.bathroom || 'NW';
     if (bathroom === 'NE') {
-      roomRemedies.push(`• શૌચાલય (ઉત્તર-પૂર્વ): દરવાજાના ઉંબરા નીચે તાંબાની પટ્ટી લગાવો. અંદર કાચના વાસણમાં સિંધવ મીઠું રાખો અને દરવાજો બંધ રાખો.`);
+      roomRemedies.push(`• મુખ્ય શૌચાલય (ઉત્તર-પૂર્વ): દરવાજાના ઉંબરા નીચે તાંબાની પટ્ટી લગાવો. અંદર કાચના વાસણમાં સિંધવ મીઠું રાખો અને દરવાજો બંધ રાખો.`);
+    } else if (!['NW', 'W'].includes(bathroom)) {
+      roomRemedies.push(`• મુખ્ય શૌચાલય (${bathroom}): દરવાજો બંધ રાખો. વેન્ટિલેશન માટે એક્ઝોસ્ટ ફેન લગાવો.`);
     }
 
-    remedies.push(`3. ઓરડાઓ અને દિશાઓના ખાસ ઉપાયો:
-${roomRemedies.join('\n')}`);
+    additionalBathrooms.forEach((dir, idx) => {
+      if (dir === 'NE') {
+        roomRemedies.push(`• શૌચાલય ${idx + 2} (ઉત્તર-પૂર્વ): ⚠️ ગંભીર દોષ! ઉંબરા નીચે તાંબાની પટ્ટી લગાવો. અંદર કાચના વાસણમાં સિંધવ મીઠું રાખો. દરવાજો બંધ રાખો.`);
+      } else if (!['NW', 'W'].includes(dir)) {
+        roomRemedies.push(`• શૌચાલય ${idx + 2} (${dir}): દરવાજો બંધ રાખો અને વેન્ટિલેશન સુનિશ્ચિત કરો. વાદળી ટાઇલ્સ ટાળો.`);
+      } else {
+        roomRemedies.push(`• શૌચાલય ${idx + 2} (${dir}): અનુકૂળ દિશા! સ્વચ્છતા જાળવો.`);
+      }
+    });
 
-    remedies.push(`4. સામાન્ય ઊર્જા સંતુલન ઉપાયો:
-• ઉત્તર-પૂર્વ (ઈશાન) ગેલેરીમાં તુલસીનો છોડ વાવો.
-• સાંજના સમયે કપૂરનો ધૂપ કરો જેથી નકારાત્મક ઊર્જા દૂર થાય.
-• ઉત્તર-પશ્ચિમ ગેલેરીમાં 6 સળિયા વાળી પિત્તળની વિન્ડ ચાઇમ લગાવો.`);
-
+    remedies.push(`3. ઓરડાઓ અને દિશાઓના ખાસ ઉપાયો:\n${roomRemedies.join('\n')}`);
+    remedies.push(`4. સામાન્ય ઊર્જા સંતુલન ઉપાયો:\n• ઉત્તર-પૂર્વ (ઈશાન) ગેલેરીમાં તુલસીનો છોડ વાવો.\n• સાંજના સમયે કપૂરનો ધૂપ કરો જેથી નકારાત્મક ઊર્જા દૂર થાય.\n• ઉત્તર-પશ્ચિમ ગેલેરીમાં 6 સળિયા વાળી પિત્તળની વિન્ડ ચાઇમ લગાવો.`);
     return remedies.join('\n\n');
   }
 
   // English default
   const remedies = [];
-  remedies.push(`1. EXECUTIVE VASTU SUMMARY:
-Your property achieved a Vastu Harmony Score of ${totalScore}/100 (${tier} Alignment). While primary directional axes show functional potential, targeted elemental rectifications are recommended to harmonize energy flow without any structural demolition.`);
+  remedies.push(`1. EXECUTIVE VASTU SUMMARY:\nYour property achieved a Vastu Harmony Score of ${totalScore}/100 (${tier} Alignment). While primary directional axes show functional potential, targeted elemental rectifications are recommended to harmonize energy flow without any structural demolition.`);
 
   if (criticalDoshas && criticalDoshas.length > 0) {
-    remedies.push(`2. CRITICAL DOSHA RECTIFICATIONS:
-${criticalDoshas.map(d => `• [${d}]: Install a 3mm copper strip along the threshold boundary to seal energy leakage. Place a lead pyramid grid in the affected corner.`).join('\n')}`);
+    remedies.push(`2. CRITICAL DOSHA RECTIFICATIONS:\n${criticalDoshas.map(d => `• [${d}]: Install a 3mm copper strip along the threshold boundary to seal energy leakage. Place a lead pyramid grid in the affected corner.`).join('\n')}`);
   } else {
-    remedies.push(`2. CRITICAL DOSHA RECTIFICATIONS:
-• No severe structural flaws (Ishaan/Nairuti clashes) detected. Core energetic zones remain stable.`);
+    remedies.push(`2. CRITICAL DOSHA RECTIFICATIONS:\n• No severe structural flaws (Ishaan/Nairuti clashes) detected. Core energetic zones remain stable.`);
   }
 
   const roomRemedies = [];
@@ -203,35 +242,59 @@ ${criticalDoshas.map(d => `• [${d}]: Install a 3mm copper strip along the thre
 
   const kitchen = inputs.kitchen || 'SE';
   if (kitchen !== 'SE') {
-    roomRemedies.push(`• Kitchen Placement (${kitchen}): Place a yellow marble slab under the stove and avoid blue or black granite counter tops to resolve Fire vs Water conflict.`);
+    roomRemedies.push(`• Main Kitchen (${kitchen}): Place a yellow marble slab under the stove and avoid blue or black granite counter tops to resolve Fire vs Water conflict.`);
   } else {
-    roomRemedies.push(`• Kitchen Placement (South-East): Ideal Agni Kona placement! Keep counter clutter-free and cook facing East.`);
+    roomRemedies.push(`• Main Kitchen (South-East): Ideal Agni Kona placement! Keep counter clutter-free and cook facing East.`);
   }
+
+  additionalKitchens.forEach((dir, idx) => {
+    if (dir !== 'SE') {
+      roomRemedies.push(`• Kitchen ${idx + 2} (${dir}): Place a yellow marble slab under the cooking area. Install a red bulb in the South-East corner to balance the Fire element.`);
+    } else {
+      roomRemedies.push(`• Kitchen ${idx + 2} (South-East): Ideal Agni Kona placement! Maintain cleanliness.`);
+    }
+  });
 
   const bedroom = inputs.masterBedroom || 'SW';
   if (bedroom !== 'SW') {
-    roomRemedies.push(`• Master Bedroom Placement (${bedroom}): Sleep with your head pointing towards South or West. Use a solid wooden bed (no metal frame) and warm earth-tone decor (beige, terracotta).`);
+    roomRemedies.push(`• Master Bedroom (${bedroom}): Sleep with your head pointing towards South or West. Use a solid wooden bed (no metal frame) and warm earth-tone decor (beige, terracotta).`);
   }
+
+  additionalBedrooms.forEach((dir, idx) => {
+    if (dir !== 'SW' && !['S', 'W'].includes(dir)) {
+      roomRemedies.push(`• Bedroom ${idx + 2} (${dir}): Sleep with head towards South. Use light yellow or cream wall colors. Avoid metal bed frames and place a Vastu pyramid under the bed.`);
+    } else {
+      roomRemedies.push(`• Bedroom ${idx + 2} (${dir}): Good placement! Use dark-tone curtains and maintain a calm atmosphere.`);
+    }
+  });
 
   const bathroom = inputs.bathroom || 'NW';
   if (bathroom === 'NE') {
-    roomRemedies.push(`• Bathroom Placement (North-East): Install a copper strip under the door threshold. Place a bowl of raw rock salt inside and keep the door closed at all times.`);
+    roomRemedies.push(`• Main Bathroom (North-East): Install a copper strip under the door threshold. Place a bowl of raw rock salt inside and keep the door closed at all times.`);
+  } else if (!['NW', 'W'].includes(bathroom)) {
+    roomRemedies.push(`• Main Bathroom (${bathroom}): Keep the door closed at all times. Install an exhaust fan for proper ventilation.`);
   }
 
-  remedies.push(`3. TAILORED ROOM & SPATIAL REMEDIES:
-${roomRemedies.join('\n')}`);
+  additionalBathrooms.forEach((dir, idx) => {
+    if (dir === 'NE') {
+      roomRemedies.push(`• Bathroom ${idx + 2} (North-East): ⚠️ Critical Flaw! Install a copper strip under the threshold. Place raw rock salt in a glass bowl inside. Keep door permanently closed.`);
+    } else if (!['NW', 'W'].includes(dir)) {
+      roomRemedies.push(`• Bathroom ${idx + 2} (${dir}): Keep door closed and ensure proper ventilation. Avoid blue-colored tiles.`);
+    } else {
+      roomRemedies.push(`• Bathroom ${idx + 2} (${dir}): Favorable placement! Maintain cleanliness.`);
+    }
+  });
 
-  remedies.push(`4. GENERAL ELEMENTAL HARMONIZATION:
-• Place a live Tulsi (Holy Basil) plant in the North-East or East balcony to invite positive Prana.
-• Diffuse natural camphor with lavender essential oil during evening hours for spatial aura cleansing.
-• Hang a 6-rod hollow metal wind chime in the North-West zone to keep stagnant air moving.`);
-
+  remedies.push(`3. TAILORED ROOM & SPATIAL REMEDIES:\n${roomRemedies.join('\n')}`);
+  remedies.push(`4. GENERAL ELEMENTAL HARMONIZATION:\n• Place a live Tulsi (Holy Basil) plant in the North-East or East balcony to invite positive Prana.\n• Diffuse natural camphor with lavender essential oil during evening hours for spatial aura cleansing.\n• Hang a 6-rod hollow metal wind chime in the North-West zone to keep stagnant air moving.`);
   return remedies.join('\n\n');
 };
 
+
+
 /**
- * Utility to generate a professional PDF Remedies Report
- * Direct PDF Download (No about:blank window)
+ * Generate a Vastu Remedies PDF Report
+ * Opens a new window with the full HTML report, then triggers browser print (Save as PDF).
  */
 export const generateRemediesPdf = async ({
   language = 'en',
@@ -247,9 +310,6 @@ export const generateRemediesPdf = async ({
   remediesText = '',
   createdAt = new Date()
 }) => {
-  const sanitizedName = (fullName || 'Client').replace(/[^a-zA-Z0-9]/g, '_');
-  const fileName = `Vastu_Remedies_Report_${sanitizedName}.pdf`;
-
   const t = translations[language] || translations.en;
 
   const finalRemediesText = (remediesText && remediesText.trim().length > 20)
@@ -263,171 +323,180 @@ export const generateRemediesPdf = async ({
   });
 
   const getStatusBadge = (status) => {
-    if (status === 'Auspicious') return `<span style="background: #dcfce7; color: #14532d; padding: 2px 8px; border-radius: 9999px; font-weight: bold; font-size: 11px;">${t.auspicious}</span>`;
-    if (status === 'Neutral') return `<span style="background: #fef3c7; color: #78350f; padding: 2px 8px; border-radius: 9999px; font-weight: bold; font-size: 11px;">${t.neutral}</span>`;
-    return `<span style="background: #ffe4e6; color: #881337; padding: 2px 8px; border-radius: 9999px; font-weight: bold; font-size: 11px;">${t.malefic}</span>`;
+    if (status === 'Auspicious') return `<span class="badge badge-green">${t.auspicious}</span>`;
+    if (status === 'Neutral') return `<span class="badge badge-yellow">${t.neutral}</span>`;
+    return `<span class="badge badge-red">${t.malefic}</span>`;
   };
 
-  const htmlContent = `
-    <div class="report-card" style="font-family: system-ui, -apple-system, sans-serif; color: #0f172a; padding: 12px; background: #ffffff; width: 750px; margin: 0 auto;">
-      <style>
-        @page { margin: 8mm 10mm; size: A4; }
-        @media print {
-          html, body {
-            background: #ffffff !important;
-            color: #0f172a !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          .no-print { display: none !important; }
-        }
-        .header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #fff; padding: 20px 24px; border-radius: 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-        .header-title h1 { margin: 0; font-size: 18px; font-weight: 800; text-transform: uppercase; }
-        .header-title p { margin: 3px 0 0 0; font-size: 11px; color: #cbd5e1; font-weight: 500; }
-        .score-badge { background: rgba(79, 70, 229, 0.25); border: 1px solid rgba(199, 210, 254, 0.4); padding: 8px 16px; border-radius: 12px; text-align: center; }
-        .score-num { font-size: 22px; font-weight: 900; color: ${totalScore >= 70 ? '#10b981' : '#f43f5e'}; }
-        .score-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #e2e8f0; font-weight: 700; }
-        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 12px; margin-bottom: 16px; font-size: 12px; page-break-inside: avoid; break-inside: avoid; }
-        .info-item label { display: block; font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
-        .info-item span { font-weight: 700; color: #0f172a; }
-        .dosha-box { background: #fff1f2; border: 1px solid #fecdd3; padding: 14px; border-radius: 12px; margin-bottom: 16px; page-break-inside: avoid; break-inside: avoid; }
-        .dosha-box h3 { margin: 0 0 6px 0; font-size: 11px; font-weight: 800; color: #be123c; text-transform: uppercase; }
-        .dosha-list { margin: 0; padding-left: 16px; color: #9f1239; font-size: 11px; font-weight: 600; }
-        .dosha-list li { margin-bottom: 3px; }
-        .section-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 10px; margin-top: 18px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 11px; page-break-inside: auto; }
-        th { background: #4f46e5; color: #ffffff; font-weight: 700; text-align: left; padding: 6px 10px; text-transform: uppercase; font-size: 9px; }
-        td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; color: #334155; }
-        tr:nth-child(even) td { background: #f8fafc; }
-        .remedies-container { background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; font-size: 11px; line-height: 1.6; white-space: pre-wrap; color: #1e293b; page-break-inside: auto; }
-        .consultant-card { margin-top: 20px; background: #eef2ff; border: 1px solid #c7d2fe; padding: 14px 18px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; page-break-inside: avoid; break-inside: avoid; }
-        .consultant-info h4 { margin: 0; font-size: 12px; font-weight: 800; color: #4338ca; text-transform: uppercase; }
-        .consultant-info p { margin: 2px 0 0 0; font-size: 10px; color: #3730a3; }
-        .consultant-phone { font-size: 13px; font-weight: 900; color: #4338ca; background: #ffffff; padding: 5px 12px; border-radius: 8px; border: 1px solid #c7d2fe; white-space: nowrap; }
-        .footer { margin-top: 18px; text-align: center; font-size: 9px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px; }
-      </style>
+  const scoreColor = totalScore >= 70 ? '#10b981' : totalScore >= 40 ? '#f59e0b' : '#ef4444';
 
-      <div class="header">
-        <div class="header-title">
-          <h1>${t.reportTitle}</h1>
-          <p>${t.reportSubtitle}</p>
-        </div>
-        <div class="score-badge">
-          <div class="score-num">${totalScore}/100</div>
-          <div class="score-label">${tier} ${t.tier}</div>
-        </div>
+  // Format remedies text into HTML paragraphs
+  const remediesHtml = finalRemediesText
+    .split('\n\n')
+    .map(block => {
+      const lines = block.split('\n').map(line => {
+        if (line.match(/^\d+\.\s/)) return `<h4 style="margin:10px 0 4px 0;color:#1e293b;font-size:13px;">${line}</h4>`;
+        if (line.startsWith('•')) return `<p style="margin:2px 0 2px 12px;color:#334155;font-size:11px;line-height:1.5;">${line}</p>`;
+        return `<p style="margin:2px 0;color:#334155;font-size:11px;line-height:1.5;">${line}</p>`;
+      }).join('');
+      return lines;
+    }).join('');
+
+  // Build the complete standalone HTML document
+  const fullHtml = `<!DOCTYPE html>
+<html lang="${language}">
+<head>
+  <meta charset="UTF-8">
+  <title>${t.reportTitle} - ${fullName}</title>
+  <style>
+    @page { size: A4; margin: 12mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #0f172a; background: #fff; padding: 0; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { width: 100%; max-width: 770px; margin: 0 auto; padding: 16px; }
+
+    .header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #fff; padding: 18px 22px; border-radius: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 17px; font-weight: 800; letter-spacing: 0.3px; margin: 0; }
+    .header .sub { font-size: 10px; color: #cbd5e1; margin-top: 3px; }
+    .score-box { background: rgba(79,70,229,0.2); border: 1px solid rgba(199,210,254,0.4); padding: 8px 14px; border-radius: 10px; text-align: center; min-width: 80px; }
+    .score-num { font-size: 22px; font-weight: 900; color: ${scoreColor}; }
+    .score-label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #e2e8f0; font-weight: 700; margin-top: 1px; }
+
+    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
+    .info-item label { display: block; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 1px; }
+    .info-item span { font-weight: 700; color: #0f172a; font-size: 11px; }
+
+    .dosha-box { background: #fff1f2; border: 1px solid #fecdd3; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
+    .dosha-box h3 { font-size: 10px; font-weight: 800; color: #be123c; text-transform: uppercase; margin-bottom: 5px; }
+    .dosha-box ul { margin: 0; padding-left: 16px; color: #9f1239; font-size: 10px; font-weight: 600; }
+    .dosha-box li { margin-bottom: 2px; }
+
+    .section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 3px; margin: 16px 0 8px 0; }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10px; }
+    th { background: #4f46e5; color: #fff; font-weight: 700; text-align: left; padding: 5px 8px; text-transform: uppercase; font-size: 8px; }
+    td { padding: 5px 8px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+    tr:nth-child(even) td { background: #f8fafc; }
+
+    .badge { padding: 2px 7px; border-radius: 9999px; font-weight: 700; font-size: 9px; display: inline-block; }
+    .badge-green { background: #dcfce7; color: #14532d; }
+    .badge-yellow { background: #fef3c7; color: #78350f; }
+    .badge-red { background: #ffe4e6; color: #881337; }
+
+    .remedies-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; margin-bottom: 14px; }
+
+    .consultant-card { background: #eef2ff; border: 1px solid #c7d2fe; padding: 12px 16px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: 16px; page-break-inside: avoid; }
+    .consultant-card h4 { font-size: 11px; font-weight: 800; color: #4338ca; text-transform: uppercase; margin: 0; }
+    .consultant-card p { font-size: 9px; color: #3730a3; margin: 2px 0 0 0; }
+    .consultant-phone { font-size: 12px; font-weight: 900; color: #4338ca; background: #fff; padding: 4px 10px; border-radius: 6px; border: 1px solid #c7d2fe; white-space: nowrap; }
+
+    .footer { margin-top: 16px; text-align: center; font-size: 8px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 8px; }
+
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .page { padding: 0; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div>
+        <h1>${t.reportTitle}</h1>
+        <div class="sub">${t.reportSubtitle}</div>
       </div>
-
-      <div class="info-grid">
-        <div class="info-item"><label>${t.clientName}</label><span>${fullName}</span></div>
-        <div class="info-item"><label>${t.propertyFacing}</label><span>${inputs.plotFacing || 'N/A'}</span></div>
-        <div class="info-item"><label>${t.plotGeometry}</label><span>${inputs.plotShape || 'Square'}</span></div>
-        <div class="info-item"><label>${t.contactPhone}</label><span>${phone}</span></div>
-        <div class="info-item"><label>${t.emailAddress}</label><span>${email}</span></div>
-        <div class="info-item"><label>${t.reportDate}</label><span>${formattedDate}</span></div>
-      </div>
-
-      ${criticalDoshas && criticalDoshas.length > 0 ? `
-        <div class="dosha-box">
-          <h3>${t.criticalFlawsTitle} (${criticalDoshas.length})</h3>
-          <ul class="dosha-list">
-            ${criticalDoshas.map(d => `<li>${d}</li>`).join('')}
-          </ul>
-        </div>
-      ` : ''}
-
-      <div class="section-title">${t.breakdownTitle}</div>
-      <table>
-        <thead>
-          <tr>
-            <th>${t.tableZone}</th>
-            <th>${t.tablePlacement}</th>
-            <th>${t.tableStatus}</th>
-            <th>${t.tableScore}</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${Object.keys(breakdown).map(k => {
-            const item = breakdown[k];
-            const val = inputs[k === 'entrance' ? 'mainEntrance' : k] || 'Selected';
-            return `
-              <tr>
-                <td><strong>${k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')}</strong></td>
-                <td>${val}</td>
-                <td>${getStatusBadge(item.status)}</td>
-                <td><strong>${item.score}</strong> / ${item.max}</td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-
-      <div class="section-title">${t.remediesTitle}</div>
-      <div class="remedies-container">${finalRemediesText}</div>
-
-      <div class="consultant-card">
-        <div class="consultant-info">
-          <h4>${t.consultantTitle}</h4>
-          <p>${t.consultantDesc}</p>
-        </div>
-        <div class="consultant-phone">+91 81403 95693</div>
-      </div>
-
-      <div class="footer">
-        ${t.footerText} • Page 1
+      <div class="score-box">
+        <div class="score-num">${totalScore}/100</div>
+        <div class="score-label">${tier} ${t.tier}</div>
       </div>
     </div>
-  `;
 
-  // 1. Direct PDF File Download via html2pdf (NO POP-UP, NO ABOUT:BLANK WINDOW!)
-  if (window.html2pdf) {
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'fixed';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.top = '-9999px';
-    tempContainer.style.width = '794px';
-    tempContainer.innerHTML = htmlContent;
-    document.body.appendChild(tempContainer);
+    <div class="info-grid">
+      <div class="info-item"><label>${t.clientName}</label><span>${fullName}</span></div>
+      <div class="info-item"><label>${t.propertyFacing}</label><span>${inputs.plotFacing || 'N/A'}</span></div>
+      <div class="info-item"><label>${t.plotGeometry}</label><span>${inputs.plotShape || 'Square'}</span></div>
+      <div class="info-item"><label>${t.contactPhone}</label><span>${phone}</span></div>
+      <div class="info-item"><label>${t.emailAddress}</label><span>${email}</span></div>
+      <div class="info-item"><label>${t.reportDate}</label><span>${formattedDate}</span></div>
+    </div>
 
-    const opt = {
-      margin: [8, 8, 8, 8],
-      filename: fileName,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    ${criticalDoshas && criticalDoshas.length > 0 ? `
+    <div class="dosha-box">
+      <h3>${t.criticalFlawsTitle} (${criticalDoshas.length})</h3>
+      <ul>
+        ${criticalDoshas.map(d => `<li>${d}</li>`).join('')}
+      </ul>
+    </div>
+    ` : ''}
+
+    <div class="section-title">${t.breakdownTitle}</div>
+    <table>
+      <thead>
+        <tr>
+          <th>${t.tableZone}</th>
+          <th>${t.tablePlacement}</th>
+          <th>${t.tableStatus}</th>
+          <th>${t.tableScore}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${Object.keys(breakdown).map(k => {
+          const item = breakdown[k];
+          const val = inputs[k === 'entrance' ? 'mainEntrance' : k] || 'Selected';
+          return `
+            <tr>
+              <td><strong>${k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')}</strong></td>
+              <td>${val}</td>
+              <td>${getStatusBadge(item.status)}</td>
+              <td><strong>${item.score}</strong> / ${item.max}</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+
+    <div class="section-title">${t.remediesTitle}</div>
+    <div class="remedies-box">${remediesHtml}</div>
+
+    <div class="consultant-card">
+      <div>
+        <h4>${t.consultantTitle}</h4>
+        <p>${t.consultantDesc}</p>
+      </div>
+      <div class="consultant-phone">+91 81403 95693</div>
+    </div>
+
+    <div class="footer">${t.footerText}</div>
+  </div>
+
+  <script>
+    // Auto-print after page loads, then close
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 400);
     };
+    window.onafterprint = function() {
+      window.close();
+    };
+  </script>
+</body>
+</html>`;
 
-    try {
-      await window.html2pdf().set(opt).from(tempContainer).save();
-      document.body.removeChild(tempContainer);
-      return;
-    } catch (pdfErr) {
-      console.warn('html2pdf save error, using iframe print fallback:', pdfErr);
-      if (tempContainer.parentNode) document.body.removeChild(tempContainer);
-    }
+  // Open the report in a new window and let the browser print it
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.open();
+    printWindow.document.write(fullHtml);
+    printWindow.document.close();
+  } else {
+    // Popup blocked fallback: download as HTML file
+    const blob = new Blob([fullHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Vastu_Remedies_Report_${(fullName || 'Client').replace(/[^a-zA-Z0-9]/g, '_')}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
-
-  // 2. In-Page Hidden iframe Fallback (NO ABOUT:BLANK WINDOW!)
-  const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.border = '0';
-  document.body.appendChild(iframe);
-
-  const doc = iframe.contentWindow.document;
-  doc.open();
-  doc.write(`<!DOCTYPE html><html><head><title></title></head><body style="margin:0;padding:0;">${htmlContent}</body></html>`);
-  doc.close();
-
-  setTimeout(() => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    setTimeout(() => {
-      if (iframe.parentNode) document.body.removeChild(iframe);
-    }, 1000);
-  }, 300);
 };

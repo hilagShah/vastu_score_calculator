@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { getApiUrl } from '../utils/apiUrl';
 import { 
   ShieldAlert, 
   CheckCircle2, 
@@ -55,8 +56,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
   const handleDownloadPdf = async () => {
     setGeneratingPdf(true);
     try {
-      const hostname = window.location.hostname || 'localhost';
-      const API_URL = window.location.port ? `${window.location.protocol}//${hostname}:5001` : '';
+      const API_URL = getApiUrl();
 
       let remediesText = '';
       try {
@@ -357,6 +357,8 @@ const ResultsDashboard = ({ reportData, onReset }) => {
               displayVal = `${rawVal} (Master), ${inputs.additionalBedrooms.join(', ')}`;
             } else if (key === 'bathroom' && inputs.additionalBathrooms && inputs.additionalBathrooms.length > 0) {
               displayVal = `${rawVal} (Main), ${inputs.additionalBathrooms.join(', ')}`;
+            } else if (key === 'kitchen' && inputs.additionalKitchens && inputs.additionalKitchens.length > 0) {
+              displayVal = `${rawVal} (Main), ${inputs.additionalKitchens.join(', ')}`;
             }
 
             return (
