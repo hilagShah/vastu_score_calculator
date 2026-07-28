@@ -55,23 +55,29 @@ Keep responses professional, encouraging, authoritative, and structured clearly 
 
     if (apiKey) {
       try {
-        const modelName = process.env.GEMINI_MODEL || 'gemini-3.1-flash';
+        const modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        console.log(`Calling Gemini API: model=${modelName}`);
         const geminiResponse = await axios.post(geminiUrl, {
           contents: [
             {
               parts: [{ text: prompt }]
             }
           ]
-        }, { timeout: 15000 });
+        }, { timeout: 25000 });
 
         const candidates = geminiResponse.data?.candidates;
         if (candidates && candidates[0]?.content?.parts[0]?.text) {
           remediesText = candidates[0].content.parts[0].text;
+          console.log(`Gemini API success: received ${remediesText.length} chars`);
+        } else {
+          console.warn('Gemini API returned no candidates:', JSON.stringify(geminiResponse.data));
         }
       } catch (geminiErr) {
-        console.error('Gemini API Request Error:', geminiErr?.response?.data || geminiErr.message);
+        console.error('Gemini API Request Error:', geminiErr?.response?.status, geminiErr?.response?.data || geminiErr.message);
       }
+    } else {
+      console.warn('GEMINI_API_KEY not set, using fallback remedies engine');
     }
 
     // Fallback Vastu Remedies Engine if Gemini API key is unavailable or fails
