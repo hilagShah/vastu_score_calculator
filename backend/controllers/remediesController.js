@@ -55,7 +55,8 @@ Keep responses professional, encouraging, authoritative, and structured clearly 
 
     if (apiKey) {
       try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const modelName = process.env.GEMINI_MODEL || 'gemini-3.1-flash';
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
         const geminiResponse = await axios.post(geminiUrl, {
           contents: [
             {
