@@ -376,11 +376,16 @@ exports.createReport = async (req, res) => {
       defects: scoreResults.defects
     });
 
-    try {
-      await newReport.save();
-      console.log('UserReport saved to MongoDB successfully.');
-    } catch (dbError) {
-      console.warn('Database save failed. Proceeding with temporary local memory response:', dbError.message);
+    if (mongoose.connection.readyState === 1) {
+      try {
+        await newReport.save();
+        console.log('UserReport saved to MongoDB successfully.');
+      } catch (dbError) {
+        console.warn('Database save failed. Proceeding with temporary local memory response:', dbError.message);
+        newReport._id = newReport._id || new mongoose.Types.ObjectId();
+      }
+    } else {
+      console.warn(`MongoDB connection not ready (readyState=${mongoose.connection.readyState}). Proceeding with local memory response.`);
       newReport._id = newReport._id || new mongoose.Types.ObjectId();
     }
 

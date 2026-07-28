@@ -5,18 +5,20 @@ const connectDB = async () => {
     return;
   }
 
-  const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/vastu_score';
+  const mongoURI = process.env.MONGO_URI;
+  if (!mongoURI) {
+    console.warn('MONGO_URI missing in environment variables. Proceeding with fallback state.');
+    return;
+  }
 
   try {
     const conn = await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`MongoDB Connection Error: ${error.message}`);
-    console.log('Continuing with local fallback or mock state...');
-    // We do not crash the server so that frontend can still be verified with mock database behavior if needed.
+    console.log('Continuing with local fallback mode...');
   }
 };
 

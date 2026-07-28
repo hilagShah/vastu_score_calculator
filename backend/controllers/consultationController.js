@@ -23,11 +23,18 @@ exports.createConsultation = async (req, res) => {
       status: 'Pending',
     });
 
-    try {
-      await newRequest.save();
-      console.log('✅ Consultation Request saved to MongoDB successfully:', newRequest._id);
-    } catch (dbError) {
-      console.warn('⚠️ Database save failed for consultation. Using memory fallback:', dbError.message);
+    if (mongoose.connection.readyState === 1) {
+      try {
+        await newRequest.save();
+        console.log('✅ Consultation Request saved to MongoDB successfully:', newRequest._id);
+      } catch (dbError) {
+        console.warn('⚠️ Database save failed for consultation. Using memory fallback:', dbError.message);
+        newRequest._id = newRequest._id || new mongoose.Types.ObjectId().toString();
+        newRequest.createdAt = new Date();
+        memoryConsultations.unshift(newRequest);
+      }
+    } else {
+      console.warn(`⚠️ MongoDB connection not ready (readyState=${mongoose.connection.readyState}). Using memory fallback.`);
       newRequest._id = newRequest._id || new mongoose.Types.ObjectId().toString();
       newRequest.createdAt = new Date();
       memoryConsultations.unshift(newRequest);
