@@ -306,9 +306,102 @@ const loadHtml2PdfScript = () => {
 };
 
 /**
- * Generate a Vastu Remedies PDF Report
- * Optimized for Mobile (direct PDF download) and Desktop browsers
- * Eliminates trailing blank pages and layout distortions on mobile.
+ * Build the PDF report as a real DOM element tree with fully inline styles.
+ * This avoids the broken "full HTML document inside innerHTML" approach
+ * where <style> tags get stripped by the browser parser.
+ */
+const buildReportElement = ({
+  t, fullName, email, phone, totalScore, tier, inputs, breakdown,
+  criticalDoshas, formattedDate, scoreColor, remediesHtml
+}) => {
+  const el = document.createElement('div');
+  el.id = 'vastu-pdf-render';
+  el.style.cssText = 'width:750px;margin:0 auto;padding:12px;background:#ffffff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#0f172a;box-sizing:border-box;';
+
+  el.innerHTML = `
+    <!-- HEADER -->
+    <div style="background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);color:#fff;padding:14px 18px;border-radius:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:15px;font-weight:800;letter-spacing:0.2px;margin:0;">${t.reportTitle}</div>
+        <div style="font-size:9px;color:#cbd5e1;margin-top:2px;">${t.reportSubtitle}</div>
+      </div>
+      <div style="background:rgba(79,70,229,0.2);border:1px solid rgba(199,210,254,0.4);padding:6px 12px;border-radius:8px;text-align:center;min-width:75px;">
+        <div style="font-size:20px;font-weight:900;color:${scoreColor};">${totalScore}/100</div>
+        <div style="font-size:7px;text-transform:uppercase;letter-spacing:0.8px;color:#e2e8f0;font-weight:700;margin-top:1px;">${tier} ${t.tier}</div>
+      </div>
+    </div>
+
+    <!-- INFO GRID -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#f8fafc;border:1px solid #e2e8f0;padding:10px;border-radius:8px;margin-bottom:10px;">
+      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.clientName}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${fullName}</div></div>
+      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.propertyFacing}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${inputs.plotFacing || 'N/A'}</div></div>
+      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.plotGeometry}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${inputs.plotShape || 'Square'}</div></div>
+      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.contactPhone}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${phone}</div></div>
+      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.emailAddress}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${email}</div></div>
+      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.reportDate}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${formattedDate}</div></div>
+    </div>
+
+    ${criticalDoshas && criticalDoshas.length > 0 ? `
+    <!-- DOSHAS -->
+    <div style="background:#fff1f2;border:1px solid #fecdd3;padding:10px;border-radius:8px;margin-bottom:10px;">
+      <div style="font-size:9px;font-weight:800;color:#be123c;text-transform:uppercase;margin-bottom:4px;">${t.criticalFlawsTitle} (${criticalDoshas.length})</div>
+      <ul style="margin:0;padding-left:14px;color:#9f1239;font-size:9px;font-weight:600;">
+        ${criticalDoshas.map(d => `<li style="margin-bottom:2px;">${d}</li>`).join('')}
+      </ul>
+    </div>` : ''}
+
+    <!-- BREAKDOWN TABLE -->
+    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;border-bottom:2px solid #e2e8f0;padding-bottom:2px;margin:10px 0 6px 0;">${t.breakdownTitle}</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9px;">
+      <thead>
+        <tr>
+          <th style="background:#4f46e5;color:#fff;font-weight:700;text-align:left;padding:4px 6px;text-transform:uppercase;font-size:7px;">${t.tableZone}</th>
+          <th style="background:#4f46e5;color:#fff;font-weight:700;text-align:left;padding:4px 6px;text-transform:uppercase;font-size:7px;">${t.tablePlacement}</th>
+          <th style="background:#4f46e5;color:#fff;font-weight:700;text-align:left;padding:4px 6px;text-transform:uppercase;font-size:7px;">${t.tableStatus}</th>
+          <th style="background:#4f46e5;color:#fff;font-weight:700;text-align:left;padding:4px 6px;text-transform:uppercase;font-size:7px;">${t.tableScore}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${Object.keys(breakdown).map((k, i) => {
+          const item = breakdown[k];
+          const val = inputs[k === 'entrance' ? 'mainEntrance' : k] || 'Selected';
+          const bgColor = i % 2 === 1 ? '#f8fafc' : '#ffffff';
+          const statusColor = item.status === 'Auspicious' ? 'background:#dcfce7;color:#14532d' : item.status === 'Neutral' ? 'background:#fef3c7;color:#78350f' : 'background:#ffe4e6;color:#881337';
+          const statusLabel = item.status === 'Auspicious' ? t.auspicious : item.status === 'Neutral' ? t.neutral : t.malefic;
+          return `<tr>
+            <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};"><strong>${k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')}</strong></td>
+            <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};">${val}</td>
+            <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};"><span style="padding:1px 6px;border-radius:9999px;font-weight:700;font-size:8px;display:inline-block;${statusColor};">${statusLabel}</span></td>
+            <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};"><strong>${item.score}</strong> / ${item.max}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+
+    <!-- REMEDIES -->
+    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;border-bottom:2px solid #e2e8f0;padding-bottom:2px;margin:10px 0 6px 0;">${t.remediesTitle}</div>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px;border-radius:8px;margin-bottom:10px;">${remediesHtml}</div>
+
+    <!-- CONSULTANT CARD -->
+    <div style="background:#eef2ff;border:1px solid #c7d2fe;padding:10px 14px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+      <div>
+        <div style="font-size:10px;font-weight:800;color:#4338ca;text-transform:uppercase;margin:0;">${t.consultantTitle}</div>
+        <div style="font-size:8px;color:#3730a3;margin:1px 0 0 0;">${t.consultantDesc}</div>
+      </div>
+      <div style="font-size:11px;font-weight:900;color:#4338ca;background:#fff;padding:3px 8px;border-radius:5px;border:1px solid #c7d2fe;white-space:nowrap;">+91 81403 95693</div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="margin-top:10px;text-align:center;font-size:7px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:6px;">${t.footerText}</div>
+  `;
+
+  return el;
+};
+
+/**
+ * Generate a Vastu Remedies PDF Report.
+ * Works identically on phones and laptops by rendering a fixed-width
+ * DOM element with all inline styles, then capturing it with html2canvas.
  */
 export const generateRemediesPdf = async ({
   language = 'en',
@@ -340,201 +433,93 @@ export const generateRemediesPdf = async ({
     day: 'numeric'
   });
 
-  const getStatusBadge = (status) => {
-    if (status === 'Auspicious') return `<span class="badge badge-green">${t.auspicious}</span>`;
-    if (status === 'Neutral') return `<span class="badge badge-yellow">${t.neutral}</span>`;
-    return `<span class="badge badge-red">${t.malefic}</span>`;
-  };
-
   const scoreColor = totalScore >= 70 ? '#10b981' : totalScore >= 40 ? '#f59e0b' : '#ef4444';
 
-  // Format remedies text into HTML paragraphs
+  // Format remedies text into inline-styled HTML
   const remediesHtml = finalRemediesText
     .split('\n\n')
     .map(block => {
-      const lines = block.split('\n').map(line => {
-        if (line.match(/^\d+\.\s/)) return `<h4 style="margin:8px 0 3px 0;color:#1e293b;font-size:12px;page-break-after:avoid;">${line}</h4>`;
-        if (line.startsWith('•')) return `<p style="margin:2px 0 2px 10px;color:#334155;font-size:10.5px;line-height:1.4;">${line}</p>`;
-        return `<p style="margin:2px 0;color:#334155;font-size:10.5px;line-height:1.4;">${line}</p>`;
+      return block.split('\n').map(line => {
+        if (line.match(/^\d+\.\s/)) return `<div style="margin:8px 0 3px 0;color:#1e293b;font-size:11px;font-weight:700;">${line}</div>`;
+        if (line.startsWith('•')) return `<div style="margin:2px 0 2px 10px;color:#334155;font-size:10px;line-height:1.4;">${line}</div>`;
+        if (line.trim()) return `<div style="margin:2px 0;color:#334155;font-size:10px;line-height:1.4;">${line}</div>`;
+        return '';
       }).join('');
-      return lines;
     }).join('');
-
-  // Build compact HTML document optimized for exact single/double page fit
-  const fullHtml = `<!DOCTYPE html>
-<html lang="${language}">
-<head>
-  <meta charset="UTF-8">
-  <title>${t.reportTitle} - ${fullName}</title>
-  <style>
-    @page { size: A4; margin: 8mm; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #0f172a; background: #ffffff; padding: 0; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .page { width: 750px; margin: 0 auto; padding: 12px; background: #ffffff; box-sizing: border-box; }
-
-    .header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #fff; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 16px; font-weight: 800; letter-spacing: 0.2px; margin: 0; }
-    .header .sub { font-size: 9.5px; color: #cbd5e1; margin-top: 2px; }
-    .score-box { background: rgba(79,70,229,0.2); border: 1px solid rgba(199,210,254,0.4); padding: 6px 12px; border-radius: 8px; text-align: center; min-width: 75px; }
-    .score-num { font-size: 20px; font-weight: 900; color: ${scoreColor}; }
-    .score-label { font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.8px; color: #e2e8f0; font-weight: 700; margin-top: 1px; }
-
-    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
-    .info-item label { display: block; font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 1px; }
-    .info-item span { font-weight: 700; color: #0f172a; font-size: 10.5px; }
-
-    .dosha-box { background: #fff1f2; border: 1px solid #fecdd3; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
-    .dosha-box h3 { font-size: 9.5px; font-weight: 800; color: #be123c; text-transform: uppercase; margin-bottom: 4px; }
-    .dosha-box ul { margin: 0; padding-left: 14px; color: #9f1239; font-size: 9.5px; font-weight: 600; }
-    .dosha-box li { margin-bottom: 2px; }
-
-    .section-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 2px; margin: 10px 0 6px 0; }
-
-    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5px; }
-    th { background: #4f46e5; color: #fff; font-weight: 700; text-align: left; padding: 4px 6px; text-transform: uppercase; font-size: 7.5px; }
-    td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; color: #334155; }
-    tr:nth-child(even) td { background: #f8fafc; }
-
-    .badge { padding: 1px 6px; border-radius: 9999px; font-weight: 700; font-size: 8.5px; display: inline-block; }
-    .badge-green { background: #dcfce7; color: #14532d; }
-    .badge-yellow { background: #fef3c7; color: #78350f; }
-    .badge-red { background: #ffe4e6; color: #881337; }
-
-    .remedies-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
-
-    .consultant-card { background: #eef2ff; border: 1px solid #c7d2fe; padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; page-break-inside: avoid; }
-    .consultant-card h4 { font-size: 10px; font-weight: 800; color: #4338ca; text-transform: uppercase; margin: 0; }
-    .consultant-card p { font-size: 8.5px; color: #3730a3; margin: 1px 0 0 0; }
-    .consultant-phone { font-size: 11px; font-weight: 900; color: #4338ca; background: #fff; padding: 3px 8px; border-radius: 5px; border: 1px solid #c7d2fe; white-space: nowrap; }
-
-    .footer { margin-top: 10px; text-align: center; font-size: 7.5px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 6px; padding-bottom: 0; margin-bottom: 0; }
-
-    @media print {
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page { padding: 0; width: 100%; }
-      .no-print { display: none !important; }
-    }
-  </style>
-</head>
-<body>
-  <div class="page" id="pdf-report-content">
-    <div class="header">
-      <div>
-        <h1>${t.reportTitle}</h1>
-        <div class="sub">${t.reportSubtitle}</div>
-      </div>
-      <div class="score-box">
-        <div class="score-num">${totalScore}/100</div>
-        <div class="score-label">${tier} ${t.tier}</div>
-      </div>
-    </div>
-
-    <div class="info-grid">
-      <div class="info-item"><label>${t.clientName}</label><span>${fullName}</span></div>
-      <div class="info-item"><label>${t.propertyFacing}</label><span>${inputs.plotFacing || 'N/A'}</span></div>
-      <div class="info-item"><label>${t.plotGeometry}</label><span>${inputs.plotShape || 'Square'}</span></div>
-      <div class="info-item"><label>${t.contactPhone}</label><span>${phone}</span></div>
-      <div class="info-item"><label>${t.emailAddress}</label><span>${email}</span></div>
-      <div class="info-item"><label>${t.reportDate}</label><span>${formattedDate}</span></div>
-    </div>
-
-    ${criticalDoshas && criticalDoshas.length > 0 ? `
-    <div class="dosha-box">
-      <h3>${t.criticalFlawsTitle} (${criticalDoshas.length})</h3>
-      <ul>
-        ${criticalDoshas.map(d => `<li>${d}</li>`).join('')}
-      </ul>
-    </div>
-    ` : ''}
-
-    <div class="section-title">${t.breakdownTitle}</div>
-    <table>
-      <thead>
-        <tr>
-          <th>${t.tableZone}</th>
-          <th>${t.tablePlacement}</th>
-          <th>${t.tableStatus}</th>
-          <th>${t.tableScore}</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${Object.keys(breakdown).map(k => {
-          const item = breakdown[k];
-          const val = inputs[k === 'entrance' ? 'mainEntrance' : k] || 'Selected';
-          return `
-            <tr>
-              <td><strong>${k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')}</strong></td>
-              <td>${val}</td>
-              <td>${getStatusBadge(item.status)}</td>
-              <td><strong>${item.score}</strong> / ${item.max}</td>
-            </tr>
-          `;
-        }).join('')}
-      </tbody>
-    </table>
-
-    <div class="section-title">${t.remediesTitle}</div>
-    <div class="remedies-box">${remediesHtml}</div>
-
-    <div class="consultant-card">
-      <div>
-        <h4>${t.consultantTitle}</h4>
-        <p>${t.consultantDesc}</p>
-      </div>
-      <div class="consultant-phone">+91 81403 95693</div>
-    </div>
-
-    <div class="footer">${t.footerText}</div>
-  </div>
-</body>
-</html>`;
 
   const fileName = `Vastu_Remedies_Report_${(fullName || 'Client').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
 
-  // Create fixed 750px off-screen container for crisp, uniform PDF rendering on all mobile viewports
-  const renderContainer = document.createElement('div');
-  renderContainer.style.position = 'absolute';
-  renderContainer.style.left = '0';
-  renderContainer.style.top = '-9999px';
-  renderContainer.style.width = '750px';
-  renderContainer.style.background = '#ffffff';
-  renderContainer.innerHTML = fullHtml;
-  document.body.appendChild(renderContainer);
+  // Build the report as a real DOM element with inline styles
+  const reportEl = buildReportElement({
+    t, fullName, email, phone, totalScore, tier, inputs, breakdown,
+    criticalDoshas, formattedDate, scoreColor, remediesHtml
+  });
+
+  // Create a wrapper that is on-screen but invisible to the user.
+  // html2canvas needs the element to be in the normal document flow
+  // to measure layout correctly. We use opacity:0 + overflow:hidden
+  // so it's invisible but still laid out by the browser engine.
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:fixed;left:0;top:0;width:750px;opacity:0;pointer-events:none;z-index:-1;overflow:hidden;';
+  wrapper.appendChild(reportEl);
+  document.body.appendChild(wrapper);
+
+  // Allow the browser one frame to lay out the element
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
   try {
     const html2pdf = await loadHtml2PdfScript();
     if (html2pdf) {
-      const element = renderContainer.querySelector('#pdf-report-content') || renderContainer;
-      const opt = {
-        margin: [6, 6, 6, 6],
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true, 
-          logging: false,
-          windowWidth: 794,
-          scrollX: 0,
-          scrollY: 0
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-      await html2pdf().set(opt).from(element).save();
-      if (document.body.contains(renderContainer)) {
-        document.body.removeChild(renderContainer);
-      }
+      await html2pdf()
+        .set({
+          margin: [6, 6, 6, 6],
+          filename: fileName,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            width: 750,
+            windowWidth: 750
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        })
+        .from(reportEl)
+        .save();
+
+      document.body.removeChild(wrapper);
       return;
     }
   } catch (pdfErr) {
-    console.warn('html2pdf generation failed, falling back to direct download/print container:', pdfErr);
+    console.warn('html2pdf generation failed, using fallback:', pdfErr);
   }
 
-  // Fallback direct Blob file download for mobile
+  // Cleanup wrapper from the primary attempt
+  if (document.body.contains(wrapper)) {
+    document.body.removeChild(wrapper);
+  }
+
+  // Fallback: open a new print-ready window (works on desktop, fallback HTML download on mobile)
+  const printHtml = `<!DOCTYPE html>
+<html lang="${language}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=750">
+  <title>${t.reportTitle} - ${fullName}</title>
+  <style>
+    @page { size: A4; margin: 8mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: #fff; margin: 0; padding: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  </style>
+</head>
+<body>${reportEl.outerHTML}</body>
+</html>`;
+
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
   if (isMobile) {
-    const blob = new Blob([fullHtml], { type: 'text/html' });
+    const blob = new Blob([printHtml], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -544,23 +529,13 @@ export const generateRemediesPdf = async ({
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   } else {
-    // Desktop Print window fallback
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.open();
-      printWindow.document.write(fullHtml);
+      printWindow.document.write(printHtml);
       printWindow.document.close();
-      setTimeout(() => {
-        try {
-          printWindow.print();
-        } catch (e) {
-          console.error('Print window error:', e);
-        }
-      }, 500);
+      setTimeout(() => { try { printWindow.print(); } catch (e) { console.error(e); } }, 500);
     }
   }
-
-  if (document.body.contains(renderContainer)) {
-    document.body.removeChild(renderContainer);
-  }
 };
+
