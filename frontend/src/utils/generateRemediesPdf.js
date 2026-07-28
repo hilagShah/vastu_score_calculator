@@ -1,7 +1,7 @@
 /**
  * Multi-lingual Vastu Remedies PDF Generator
  * Cross-platform: Mobile-friendly PDF generation & download
- * Priority for backend AI response, with clean branding (no Gemini branding references)
+ * Priority for backend AI response, clean branding & zero unnecessary blank pages.
  */
 
 const translations = {
@@ -308,6 +308,7 @@ const loadHtml2PdfScript = () => {
 /**
  * Generate a Vastu Remedies PDF Report
  * Optimized for Mobile (direct PDF download) and Desktop browsers
+ * Eliminates trailing blank pages and layout distortions on mobile.
  */
 export const generateRemediesPdf = async ({
   language = 'en',
@@ -352,66 +353,65 @@ export const generateRemediesPdf = async ({
     .split('\n\n')
     .map(block => {
       const lines = block.split('\n').map(line => {
-        if (line.match(/^\d+\.\s/)) return `<h4 style="margin:10px 0 4px 0;color:#1e293b;font-size:13px;">${line}</h4>`;
-        if (line.startsWith('•')) return `<p style="margin:2px 0 2px 12px;color:#334155;font-size:11px;line-height:1.5;">${line}</p>`;
-        return `<p style="margin:2px 0;color:#334155;font-size:11px;line-height:1.5;">${line}</p>`;
+        if (line.match(/^\d+\.\s/)) return `<h4 style="margin:8px 0 3px 0;color:#1e293b;font-size:12px;page-break-after:avoid;">${line}</h4>`;
+        if (line.startsWith('•')) return `<p style="margin:2px 0 2px 10px;color:#334155;font-size:10.5px;line-height:1.4;">${line}</p>`;
+        return `<p style="margin:2px 0;color:#334155;font-size:10.5px;line-height:1.4;">${line}</p>`;
       }).join('');
       return lines;
     }).join('');
 
-  // Build the complete standalone HTML document
+  // Build compact HTML document optimized for exact single/double page fit
   const fullHtml = `<!DOCTYPE html>
 <html lang="${language}">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${t.reportTitle} - ${fullName}</title>
   <style>
-    @page { size: A4; margin: 12mm; }
+    @page { size: A4; margin: 8mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #0f172a; background: #fff; padding: 0; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .page { width: 100%; max-width: 770px; margin: 0 auto; padding: 16px; background: #ffffff; }
+    html, body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #0f172a; background: #ffffff; padding: 0; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { width: 750px; margin: 0 auto; padding: 12px; background: #ffffff; box-sizing: border-box; }
 
-    .header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #fff; padding: 18px 22px; border-radius: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 17px; font-weight: 800; letter-spacing: 0.3px; margin: 0; }
-    .header .sub { font-size: 10px; color: #cbd5e1; margin-top: 3px; }
-    .score-box { background: rgba(79,70,229,0.2); border: 1px solid rgba(199,210,254,0.4); padding: 8px 14px; border-radius: 10px; text-align: center; min-width: 80px; }
-    .score-num { font-size: 22px; font-weight: 900; color: ${scoreColor}; }
-    .score-label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #e2e8f0; font-weight: 700; margin-top: 1px; }
+    .header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #fff; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 16px; font-weight: 800; letter-spacing: 0.2px; margin: 0; }
+    .header .sub { font-size: 9.5px; color: #cbd5e1; margin-top: 2px; }
+    .score-box { background: rgba(79,70,229,0.2); border: 1px solid rgba(199,210,254,0.4); padding: 6px 12px; border-radius: 8px; text-align: center; min-width: 75px; }
+    .score-num { font-size: 20px; font-weight: 900; color: ${scoreColor}; }
+    .score-label { font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.8px; color: #e2e8f0; font-weight: 700; margin-top: 1px; }
 
-    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
-    .info-item label { display: block; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 1px; }
-    .info-item span { font-weight: 700; color: #0f172a; font-size: 11px; }
+    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+    .info-item label { display: block; font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 1px; }
+    .info-item span { font-weight: 700; color: #0f172a; font-size: 10.5px; }
 
-    .dosha-box { background: #fff1f2; border: 1px solid #fecdd3; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
-    .dosha-box h3 { font-size: 10px; font-weight: 800; color: #be123c; text-transform: uppercase; margin-bottom: 5px; }
-    .dosha-box ul { margin: 0; padding-left: 16px; color: #9f1239; font-size: 10px; font-weight: 600; }
+    .dosha-box { background: #fff1f2; border: 1px solid #fecdd3; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+    .dosha-box h3 { font-size: 9.5px; font-weight: 800; color: #be123c; text-transform: uppercase; margin-bottom: 4px; }
+    .dosha-box ul { margin: 0; padding-left: 14px; color: #9f1239; font-size: 9.5px; font-weight: 600; }
     .dosha-box li { margin-bottom: 2px; }
 
-    .section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 3px; margin: 16px 0 8px 0; }
+    .section-title { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 2px; margin: 10px 0 6px 0; }
 
-    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10px; }
-    th { background: #4f46e5; color: #fff; font-weight: 700; text-align: left; padding: 5px 8px; text-transform: uppercase; font-size: 8px; }
-    td { padding: 5px 8px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5px; }
+    th { background: #4f46e5; color: #fff; font-weight: 700; text-align: left; padding: 4px 6px; text-transform: uppercase; font-size: 7.5px; }
+    td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; color: #334155; }
     tr:nth-child(even) td { background: #f8fafc; }
 
-    .badge { padding: 2px 7px; border-radius: 9999px; font-weight: 700; font-size: 9px; display: inline-block; }
+    .badge { padding: 1px 6px; border-radius: 9999px; font-weight: 700; font-size: 8.5px; display: inline-block; }
     .badge-green { background: #dcfce7; color: #14532d; }
     .badge-yellow { background: #fef3c7; color: #78350f; }
     .badge-red { background: #ffe4e6; color: #881337; }
 
-    .remedies-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; margin-bottom: 14px; }
+    .remedies-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
 
-    .consultant-card { background: #eef2ff; border: 1px solid #c7d2fe; padding: 12px 16px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: 16px; page-break-inside: avoid; }
-    .consultant-card h4 { font-size: 11px; font-weight: 800; color: #4338ca; text-transform: uppercase; margin: 0; }
-    .consultant-card p { font-size: 9px; color: #3730a3; margin: 2px 0 0 0; }
-    .consultant-phone { font-size: 12px; font-weight: 900; color: #4338ca; background: #fff; padding: 4px 10px; border-radius: 6px; border: 1px solid #c7d2fe; white-space: nowrap; }
+    .consultant-card { background: #eef2ff; border: 1px solid #c7d2fe; padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; page-break-inside: avoid; }
+    .consultant-card h4 { font-size: 10px; font-weight: 800; color: #4338ca; text-transform: uppercase; margin: 0; }
+    .consultant-card p { font-size: 8.5px; color: #3730a3; margin: 1px 0 0 0; }
+    .consultant-phone { font-size: 11px; font-weight: 900; color: #4338ca; background: #fff; padding: 3px 8px; border-radius: 5px; border: 1px solid #c7d2fe; white-space: nowrap; }
 
-    .footer { margin-top: 16px; text-align: center; font-size: 8px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 8px; }
+    .footer { margin-top: 10px; text-align: center; font-size: 7.5px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 6px; padding-bottom: 0; margin-bottom: 0; }
 
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page { padding: 0; }
+      .page { padding: 0; width: 100%; }
       .no-print { display: none !important; }
     }
   </style>
@@ -491,12 +491,13 @@ export const generateRemediesPdf = async ({
 
   const fileName = `Vastu_Remedies_Report_${(fullName || 'Client').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
 
-  // Create off-screen container for rendering
+  // Create fixed 750px off-screen container for crisp, uniform PDF rendering on all mobile viewports
   const renderContainer = document.createElement('div');
-  renderContainer.style.position = 'fixed';
-  renderContainer.style.left = '-9999px';
-  renderContainer.style.top = '0';
+  renderContainer.style.position = 'absolute';
+  renderContainer.style.left = '0';
+  renderContainer.style.top = '-9999px';
   renderContainer.style.width = '750px';
+  renderContainer.style.background = '#ffffff';
   renderContainer.innerHTML = fullHtml;
   document.body.appendChild(renderContainer);
 
@@ -505,11 +506,19 @@ export const generateRemediesPdf = async ({
     if (html2pdf) {
       const element = renderContainer.querySelector('#pdf-report-content') || renderContainer;
       const opt = {
-        margin: [8, 8, 8, 8],
+        margin: [6, 6, 6, 6],
         filename: fileName,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true, 
+          logging: false,
+          windowWidth: 794,
+          scrollX: 0,
+          scrollY: 0
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
       await html2pdf().set(opt).from(element).save();
       if (document.body.contains(renderContainer)) {
@@ -521,11 +530,10 @@ export const generateRemediesPdf = async ({
     console.warn('html2pdf generation failed, falling back to direct download/print container:', pdfErr);
   }
 
-  // Mobile / Fallback direct file download
+  // Fallback direct Blob file download for mobile
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
   if (isMobile) {
-    // Direct HTML/PDF Blob download for mobile browsers
     const blob = new Blob([fullHtml], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
