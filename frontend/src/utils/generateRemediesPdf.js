@@ -1,11 +1,12 @@
 /**
  * Multi-lingual Vastu Remedies PDF Generator
- * Uses browser print-to-PDF on a full-page overlay (guaranteed non-empty output)
+ * Cross-platform: Mobile-friendly PDF generation & download
+ * Priority for backend AI response, with clean branding (no Gemini branding references)
  */
 
 const translations = {
   en: {
-    reportTitle: 'VASTU HARMONY AI REMEDIAL REPORT',
+    reportTitle: 'VASTU HARMONY REMEDIAL REPORT',
     reportSubtitle: 'Vedic Architecture & Non-Demolition Remedial Guide',
     evalDetails: 'EVALUATION DETAILS',
     clientName: 'Owner Name',
@@ -25,14 +26,14 @@ const translations = {
     auspicious: 'Auspicious',
     neutral: 'Neutral',
     malefic: 'Malefic',
-    remediesTitle: 'GEMINI AI TAILORED NON-DEMOLITION REMEDIES',
+    remediesTitle: 'EXPERT TAILORED NON-DEMOLITION REMEDIES',
     consultantTitle: 'NEED 1-ON-1 ARCHITECTURAL CONSULTATION?',
     consultantDesc: 'Speak with Senior Vastu Architect for copper wire & pyramid installation.',
     consultantBtn: 'Direct Call / WhatsApp',
-    footerText: 'Vastu Harmony AI Evaluation System • Confidential & Proprietary Report'
+    footerText: 'Vastu Harmony Architectural Evaluation System • Confidential & Proprietary Report'
   },
   hi: {
-    reportTitle: 'वास्तु हारमनी एआई निवारण रिपोर्ट',
+    reportTitle: 'वास्तु हारमनी निवारण रिपोर्ट',
     reportSubtitle: 'वैदिक वास्तुकला एवं बिना तोड़-फोड़ वास्तु सुधार मार्गदर्शिका',
     evalDetails: 'मूल्यांकन विवरण',
     clientName: 'मालिक का नाम',
@@ -52,14 +53,14 @@ const translations = {
     auspicious: 'शुभ',
     neutral: 'तटस्थ',
     malefic: 'अशुभ',
-    remediesTitle: 'एआई आधारित बिना तोड़-फोड़ के वास्तु उपाय',
+    remediesTitle: 'वास्तु विशेषज्ञ बिना तोड़-फोड़ के उपाय',
     consultantTitle: '1-ऑन-1 वास्तु विशेषज्ञ परामर्श चाहिए?',
     consultantDesc: 'तांबे के तार और पिरामिड स्थापना के लिए वरिष्ठ वास्तु विशेषज्ञ से बात करें।',
     consultantBtn: 'कॉल या व्हाट्सएप',
-    footerText: 'वास्तु हारमनी एआई मूल्यांकन प्रणाली • गोपनीय एवं व्यक्तिगत रिपोर्ट'
+    footerText: 'वास्तु हारमनी मूल्यांकन प्रणाली • गोपनीय एवं व्यक्तिगत रिपोर्ट'
   },
   gu: {
-    reportTitle: 'વાસ્તુ હાર્મની AI નિવારણ રિપોર્ટ',
+    reportTitle: 'વાસ્તુ હાર્મની નિવારણ રિપોર્ટ',
     reportSubtitle: 'વૈદિક સ્થાપત્ય અને તોડફોડ વિનાના વાસ્તુ ઉપાય માર્ગદર્શિકા',
     evalDetails: 'મૂલ્યાંકન વિગતો',
     clientName: 'માલિકનું નામ',
@@ -79,11 +80,11 @@ const translations = {
     auspicious: 'શુભ',
     neutral: 'તટસ્થ',
     malefic: 'અશુભ',
-    remediesTitle: 'AI આધારિત તોડફોડ વિનાના વાસ્તુ ઉપાયો',
+    remediesTitle: 'તોડફોડ વિનાના વાસ્તુ નિષ્ણાત ઉપાયો',
     consultantTitle: '1-ઓન-1 વાસ્તુ નિષ્ણાત સલાહ જોઈએ છે?',
     consultantDesc: 'તાંબાના તાર અને પિરામિડ સ્થાપના માટે વરિષ્ઠ વાસ્તુ નિષ્ણાત સાથે વાત કરો.',
     consultantBtn: 'કૉલ અથવા વૉટ્સએપ',
-    footerText: 'વાસ્તુ હાર્મની AI મૂલ્યાંકન સિસ્ટમ • ગોપનીય અને વ્યક્તિગત રિપોર્ટ'
+    footerText: 'વાસ્તુ હાર્મની મૂલ્યાંકન સિસ્ટમ • ગોપનીય અને વ્યક્તિગત રિપોર્ટ'
   }
 };
 
@@ -99,7 +100,7 @@ const buildDefaultRemediesText = ({ language = 'en', totalScore = 70, tier = 'Mo
     if (criticalDoshas && criticalDoshas.length > 0) {
       remedies.push(`2. गंभीर वास्तु दोष निवारण:\n${criticalDoshas.map(d => `• [${d}]: चौखट के नीचे 3mm तांबे की पट्टी लगाएं। प्रभावित कोने में 9 सीसा पिरामिड स्थापित करें।`).join('\n')}`);
     } else {
-      remedies.push(`2. गंभीर वास्तु दोष निवारण:\n• कोई गंभीर संरचनात्मक दोष (ईशान/नैऋत्य दिशा clash) नहीं पाया गया। मुख्य ऊर्जा क्षेत्र सुरक्षित हैं।`);
+      remedies.push(`2. गंभीर वास्तु दोष निवारण:\n• कोई गंभीर संरचनात्मक दोष नहीं पाया गया। मुख्य ऊर्जा क्षेत्र सुरक्षित हैं।`);
     }
 
     const roomRemedies = [];
@@ -165,7 +166,7 @@ const buildDefaultRemediesText = ({ language = 'en', totalScore = 70, tier = 'Mo
     if (criticalDoshas && criticalDoshas.length > 0) {
       remedies.push(`2. ગંભીર વાસ્તુ દોષ નિવારણ:\n${criticalDoshas.map(d => `• [${d}]: ઉંબરા નીચે 3mm તાંબાની પટ્ટી લગાવો. અસરગ્રસ્ત ખૂણામાં 9 સીસા (Lead) પિરામિડ સ્થાપિત કરો.`).join('\n')}`);
     } else {
-      remedies.push(`2. ગંભીર વાસ્તુ દોષ નિવારણ:\n• કોઈ ગંભીર માળખાકીય દોષ (ઈશાન/નૈઋત્ય ક્લેશ) મળ્યો નથી. મુખ્ય ઊર્જા ક્ષેત્રો સુરક્ષિત છે.`);
+      remedies.push(`2. ગંભીર વાસ્તુ દોષ નિવારણ:\n• કોઈ ગંભીર માળખાકીય દોષ મળ્યો નથી. મુખ્ય ઊર્જા ક્ષેત્રો સુરક્ષિત છે.`);
     }
 
     const roomRemedies = [];
@@ -231,7 +232,7 @@ const buildDefaultRemediesText = ({ language = 'en', totalScore = 70, tier = 'Mo
   if (criticalDoshas && criticalDoshas.length > 0) {
     remedies.push(`2. CRITICAL DOSHA RECTIFICATIONS:\n${criticalDoshas.map(d => `• [${d}]: Install a 3mm copper strip along the threshold boundary to seal energy leakage. Place a lead pyramid grid in the affected corner.`).join('\n')}`);
   } else {
-    remedies.push(`2. CRITICAL DOSHA RECTIFICATIONS:\n• No severe structural flaws (Ishaan/Nairuti clashes) detected. Core energetic zones remain stable.`);
+    remedies.push(`2. CRITICAL DOSHA RECTIFICATIONS:\n• No severe structural flaws detected. Core energetic zones remain stable.`);
   }
 
   const roomRemedies = [];
@@ -290,11 +291,23 @@ const buildDefaultRemediesText = ({ language = 'en', totalScore = 70, tier = 'Mo
   return remedies.join('\n\n');
 };
 
-
+/**
+ * Dynamically load html2pdf.js bundle from CDN if not already loaded
+ */
+const loadHtml2PdfScript = () => {
+  return new Promise((resolve) => {
+    if (window.html2pdf) return resolve(window.html2pdf);
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    script.onload = () => resolve(window.html2pdf);
+    script.onerror = () => resolve(null);
+    document.head.appendChild(script);
+  });
+};
 
 /**
  * Generate a Vastu Remedies PDF Report
- * Opens a new window with the full HTML report, then triggers browser print (Save as PDF).
+ * Optimized for Mobile (direct PDF download) and Desktop browsers
  */
 export const generateRemediesPdf = async ({
   language = 'en',
@@ -312,9 +325,13 @@ export const generateRemediesPdf = async ({
 }) => {
   const t = translations[language] || translations.en;
 
-  const finalRemediesText = (remediesText && remediesText.trim().length > 20)
+  // PRIORITY: Prioritize backend AI remediesText if available
+  let rawText = (remediesText && remediesText.trim().length > 20)
     ? remediesText
     : buildDefaultRemediesText({ language, totalScore, tier, inputs, criticalDoshas, defects, breakdown });
+
+  // Clean out any occurrence of "Gemini" from final remedies output
+  const finalRemediesText = rawText.replace(/gemini/gi, 'Vastu Harmony');
 
   const formattedDate = new Date(createdAt).toLocaleDateString(language === 'hi' ? 'hi-IN' : language === 'gu' ? 'gu-IN' : 'en-US', {
     year: 'numeric',
@@ -347,12 +364,13 @@ export const generateRemediesPdf = async ({
 <html lang="${language}">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${t.reportTitle} - ${fullName}</title>
   <style>
     @page { size: A4; margin: 12mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #0f172a; background: #fff; padding: 0; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .page { width: 100%; max-width: 770px; margin: 0 auto; padding: 16px; }
+    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #0f172a; background: #fff; padding: 0; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { width: 100%; max-width: 770px; margin: 0 auto; padding: 16px; background: #ffffff; }
 
     .header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #fff; padding: 18px 22px; border-radius: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
     .header h1 { font-size: 17px; font-weight: 800; letter-spacing: 0.3px; margin: 0; }
@@ -399,7 +417,7 @@ export const generateRemediesPdf = async ({
   </style>
 </head>
 <body>
-  <div class="page">
+  <div class="page" id="pdf-report-content">
     <div class="header">
       <div>
         <h1>${t.reportTitle}</h1>
@@ -468,27 +486,46 @@ export const generateRemediesPdf = async ({
 
     <div class="footer">${t.footerText}</div>
   </div>
-
-  <script>
-    // Auto-print after page loads, then close
-    window.onload = function() {
-      setTimeout(function() { window.print(); }, 400);
-    };
-    window.onafterprint = function() {
-      window.close();
-    };
-  </script>
 </body>
 </html>`;
 
-  // Open the report in a new window and let the browser print it
-  const printWindow = window.open('', '_blank');
-  if (printWindow) {
-    printWindow.document.open();
-    printWindow.document.write(fullHtml);
-    printWindow.document.close();
-  } else {
-    // Popup blocked fallback: download as HTML file
+  const fileName = `Vastu_Remedies_Report_${(fullName || 'Client').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+
+  // Create off-screen container for rendering
+  const renderContainer = document.createElement('div');
+  renderContainer.style.position = 'fixed';
+  renderContainer.style.left = '-9999px';
+  renderContainer.style.top = '0';
+  renderContainer.style.width = '750px';
+  renderContainer.innerHTML = fullHtml;
+  document.body.appendChild(renderContainer);
+
+  try {
+    const html2pdf = await loadHtml2PdfScript();
+    if (html2pdf) {
+      const element = renderContainer.querySelector('#pdf-report-content') || renderContainer;
+      const opt = {
+        margin: [8, 8, 8, 8],
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      await html2pdf().set(opt).from(element).save();
+      if (document.body.contains(renderContainer)) {
+        document.body.removeChild(renderContainer);
+      }
+      return;
+    }
+  } catch (pdfErr) {
+    console.warn('html2pdf generation failed, falling back to direct download/print container:', pdfErr);
+  }
+
+  // Mobile / Fallback direct file download
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
+  if (isMobile) {
+    // Direct HTML/PDF Blob download for mobile browsers
     const blob = new Blob([fullHtml], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -498,5 +535,24 @@ export const generateRemediesPdf = async ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  } else {
+    // Desktop Print window fallback
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(fullHtml);
+      printWindow.document.close();
+      setTimeout(() => {
+        try {
+          printWindow.print();
+        } catch (e) {
+          console.error('Print window error:', e);
+        }
+      }, 500);
+    }
+  }
+
+  if (document.body.contains(renderContainer)) {
+    document.body.removeChild(renderContainer);
   }
 };

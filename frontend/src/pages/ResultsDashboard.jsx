@@ -80,7 +80,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
       }
 
       // Trigger client PDF generation
-      generateRemediesPdf({
+      await generateRemediesPdf({
         language: pdfLanguage,
         fullName,
         email,
@@ -174,7 +174,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
               <Sparkles className="w-8 h-8" />
             </div>
             <h4 className="text-base font-extrabold text-slate-900 font-display mb-1">
-              Gemini AI Remedies Analysis
+              Vastu Architectural Remedies Analysis
             </h4>
             <p className="text-xs text-slate-500 font-medium leading-relaxed mb-4">
               Synthesizing Vastu remedies in {pdfLanguage === 'hi' ? 'Hindi (हिंदी)' : pdfLanguage === 'gu' ? 'Gujarati (ગુજરાતી)' : 'English'} and formatting your PDF report...
@@ -487,13 +487,13 @@ const ResultsDashboard = ({ reportData, onReset }) => {
       <div className="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-2xl p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-[10px] font-bold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> AI Powered Remedies & Expert Guidance
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Architectural Remedies & Expert Guidance
           </div>
           <h3 className="text-lg font-extrabold font-display">
             Need Custom Vastu Remedies Report?
           </h3>
           <p className="text-xs text-slate-300 font-medium mt-1 max-w-lg leading-relaxed">
-            Generate an AI-powered non-demolition Vastu remedies PDF in your preferred language or speak 1-on-1 with our senior Vastu architect.
+            Generate a personalized non-demolition Vastu remedies PDF in your preferred language or speak 1-on-1 with our senior Vastu architect.
           </p>
         </div>
 

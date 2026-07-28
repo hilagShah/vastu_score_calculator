@@ -101,6 +101,11 @@ GENERAL VASTU HARMONIZATION:
 • Use camphor crystals diffused with lavender oil during evening hours for spatial purification.`;
     }
 
+    // Post-process to remove any mention of "Gemini" from the output text
+    if (remediesText) {
+      remediesText = remediesText.replace(/gemini/gi, 'Vastu Harmony');
+    }
+
     return res.status(200).json({
       success: true,
       data: {
