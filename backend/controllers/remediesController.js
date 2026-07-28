@@ -54,30 +54,43 @@ Keep responses professional, encouraging, authoritative, and structured clearly 
     let remediesText = '';
 
     if (apiKey) {
-      try {
-        const modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-        console.log(`Calling Gemini API: model=${modelName}`);
-        const geminiResponse = await axios.post(geminiUrl, {
-          contents: [
-            {
-              parts: [{ text: prompt }]
-            }
-          ]
-        }, { timeout: 25000 });
+      const modelsToTry = [
+        process.env.GEMINI_MODEL,
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+        'gemini-2.0-flash'
+      ].filter(Boolean);
 
-        const candidates = geminiResponse.data?.candidates;
-        if (candidates && candidates[0]?.content?.parts[0]?.text) {
-          remediesText = candidates[0].content.parts[0].text;
-          console.log(`Gemini API success: received ${remediesText.length} chars`);
-        } else {
-          console.warn('Gemini API returned no candidates:', JSON.stringify(geminiResponse.data));
+      // Unique model names list
+      const uniqueModels = [...new Set(modelsToTry)];
+
+      for (const modelName of uniqueModels) {
+        try {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+          console.log(`Calling Gemini API with model: ${modelName}`);
+
+          const geminiResponse = await axios.post(geminiUrl, {
+            contents: [
+              {
+                parts: [{ text: prompt }]
+              }
+            ]
+          }, { timeout: 20000 });
+
+          const candidates = geminiResponse.data?.candidates;
+          if (candidates && candidates[0]?.content?.parts[0]?.text) {
+            remediesText = candidates[0].content.parts[0].text;
+            console.log(`✅ Gemini API success using model [${modelName}]: received ${remediesText.length} chars`);
+            break; // Stop loop as soon as a model succeeds!
+          } else {
+            console.warn(`Gemini API model [${modelName}] returned no candidates:`, JSON.stringify(geminiResponse.data));
+          }
+        } catch (geminiErr) {
+          console.error(`Gemini API model [${modelName}] Error:`, geminiErr?.response?.status, geminiErr?.response?.data?.error?.message || geminiErr.message);
         }
-      } catch (geminiErr) {
-        console.error('Gemini API Request Error:', geminiErr?.response?.status, geminiErr?.response?.data || geminiErr.message);
       }
     } else {
-      console.warn('GEMINI_API_KEY not set, using fallback remedies engine');
+      console.warn('GEMINI_API_KEY not set in environment, using fallback remedies engine');
     }
 
     // Fallback Vastu Remedies Engine if Gemini API key is unavailable or fails
