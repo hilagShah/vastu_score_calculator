@@ -74,9 +74,11 @@ const ResultsDashboard = ({ reportData, onReset }) => {
 
         if (response.data?.success && response.data?.data?.remediesText) {
           remediesText = response.data.data.remediesText;
+          const source = response.data?.data?.source || 'unknown';
+          console.log(`✅ Remedies received (${remediesText.length} chars) | Source: ${source === 'gemini' ? '🤖 Gemini AI' : '📋 Hardcoded Fallback'}`);
         }
       } catch (err) {
-        console.warn('Backend remedies API error, generating local remedies report:', err.message);
+        console.warn('⚠️ Backend remedies API error, will use client-side fallback:', err.message);
       }
 
       // Trigger client PDF generation
