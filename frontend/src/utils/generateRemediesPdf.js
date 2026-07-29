@@ -316,7 +316,7 @@ const buildReportElement = ({
 }) => {
   const el = document.createElement('div');
   el.id = 'vastu-pdf-render';
-  el.style.cssText = 'width:750px;margin:0 auto;padding:12px;background:#ffffff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#0f172a;box-sizing:border-box;';
+  el.style.cssText = 'width:100%;padding:12px;background:#ffffff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#0f172a;box-sizing:border-box;';
 
   el.innerHTML = `
     <!-- HEADER -->
@@ -456,11 +456,12 @@ export const generateRemediesPdf = async ({
   });
 
   // Create a wrapper that is on-screen but invisible to the user.
-  // html2canvas needs the element to be in the normal document flow
-  // to measure layout correctly. We use opacity:0 + overflow:hidden
-  // so it's invisible but still laid out by the browser engine.
+  // html2canvas needs the element in the normal document flow to measure
+  // layout correctly. Width is set to match A4 content area at 10mm margins:
+  // A4 = 210mm, content = 210 - 10 - 10 = 190mm ≈ 720px at 96dpi
+  const PDF_CONTENT_WIDTH = 720;
   const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'position:fixed;left:0;top:0;width:750px;opacity:0;pointer-events:none;z-index:-1;overflow:hidden;';
+  wrapper.style.cssText = `position:fixed;left:0;top:0;width:${PDF_CONTENT_WIDTH}px;opacity:0;pointer-events:none;z-index:-1;overflow:hidden;`;
   wrapper.appendChild(reportEl);
   document.body.appendChild(wrapper);
 
@@ -472,15 +473,15 @@ export const generateRemediesPdf = async ({
     if (html2pdf) {
       await html2pdf()
         .set({
-          margin: [6, 6, 6, 6],
+          margin: [10, 10, 10, 10],
           filename: fileName,
           image: { type: 'jpeg', quality: 0.95 },
           html2canvas: {
             scale: 2,
             useCORS: true,
             logging: false,
-            width: 750,
-            windowWidth: 750
+            width: PDF_CONTENT_WIDTH,
+            windowWidth: PDF_CONTENT_WIDTH
           },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
