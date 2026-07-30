@@ -307,8 +307,8 @@ const loadHtml2PdfScript = () => {
 
 /**
  * Build the PDF report as a real DOM element tree with fully inline styles.
- * This avoids the broken "full HTML document inside innerHTML" approach
- * where <style> tags get stripped by the browser parser.
+ * Fixed 794px width (exact A4 width at 96 DPI) with 32px side padding,
+ * ensuring 100% full-width, perfectly centered, non-shifted layout.
  */
 const buildReportElement = ({
   t, fullName, email, phone, totalScore, tier, inputs, breakdown,
@@ -316,49 +316,49 @@ const buildReportElement = ({
 }) => {
   const el = document.createElement('div');
   el.id = 'vastu-pdf-render';
-  el.style.cssText = 'width:100%;padding:12px;background:#ffffff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#0f172a;box-sizing:border-box;';
+  el.style.cssText = 'width:794px;padding:24px 32px;background:#ffffff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#0f172a;box-sizing:border-box;margin:0 auto;';
 
   el.innerHTML = `
-    <!-- HEADER -->
-    <div style="background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);color:#fff;padding:14px 18px;border-radius:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+    <!-- HEADER BAR -->
+    <div style="background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#312e81 100%);color:#fff;padding:18px 24px;border-radius:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
       <div>
-        <div style="font-size:15px;font-weight:800;letter-spacing:0.2px;margin:0;">${t.reportTitle}</div>
-        <div style="font-size:9px;color:#cbd5e1;margin-top:2px;">${t.reportSubtitle}</div>
+        <div style="font-size:18px;font-weight:800;letter-spacing:0.5px;margin:0;color:#ffffff;">${t.reportTitle}</div>
+        <div style="font-size:10px;color:#cbd5e1;margin-top:4px;font-weight:500;">${t.reportSubtitle}</div>
       </div>
-      <div style="background:rgba(79,70,229,0.2);border:1px solid rgba(199,210,254,0.4);padding:6px 12px;border-radius:8px;text-align:center;min-width:75px;">
-        <div style="font-size:20px;font-weight:900;color:${scoreColor};">${totalScore}/100</div>
-        <div style="font-size:7px;text-transform:uppercase;letter-spacing:0.8px;color:#e2e8f0;font-weight:700;margin-top:1px;">${tier} ${t.tier}</div>
+      <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);padding:8px 16px;border-radius:10px;text-align:center;min-width:90px;">
+        <div style="font-size:22px;font-weight:900;color:${scoreColor};line-height:1;">${totalScore}/100</div>
+        <div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:#e2e8f0;font-weight:700;margin-top:3px;">${tier} ${t.tier}</div>
       </div>
     </div>
 
     <!-- INFO GRID -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#f8fafc;border:1px solid #e2e8f0;padding:10px;border-radius:8px;margin-bottom:10px;">
-      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.clientName}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${fullName}</div></div>
-      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.propertyFacing}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${inputs.plotFacing || 'N/A'}</div></div>
-      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.plotGeometry}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${inputs.plotShape || 'Square'}</div></div>
-      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.contactPhone}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${phone}</div></div>
-      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.emailAddress}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${email}</div></div>
-      <div><div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:1px;">${t.reportDate}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${formattedDate}</div></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#f8fafc;border:1px solid #e2e8f0;padding:14px 18px;border-radius:10px;margin-bottom:16px;">
+      <div><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${t.clientName}</div><div style="font-weight:700;color:#0f172a;font-size:11px;">${fullName}</div></div>
+      <div><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${t.propertyFacing}</div><div style="font-weight:700;color:#0f172a;font-size:11px;">${inputs.plotFacing || 'N/A'}</div></div>
+      <div><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${t.plotGeometry}</div><div style="font-weight:700;color:#0f172a;font-size:11px;">${inputs.plotShape || 'Square'}</div></div>
+      <div><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${t.contactPhone}</div><div style="font-weight:700;color:#0f172a;font-size:11px;">${phone}</div></div>
+      <div><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${t.emailAddress}</div><div style="font-weight:700;color:#0f172a;font-size:11px;">${email}</div></div>
+      <div><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${t.reportDate}</div><div style="font-weight:700;color:#0f172a;font-size:11px;">${formattedDate}</div></div>
     </div>
 
     ${criticalDoshas && criticalDoshas.length > 0 ? `
-    <!-- DOSHAS -->
-    <div style="background:#fff1f2;border:1px solid #fecdd3;padding:10px;border-radius:8px;margin-bottom:10px;">
-      <div style="font-size:9px;font-weight:800;color:#be123c;text-transform:uppercase;margin-bottom:4px;">${t.criticalFlawsTitle} (${criticalDoshas.length})</div>
-      <ul style="margin:0;padding-left:14px;color:#9f1239;font-size:9px;font-weight:600;">
-        ${criticalDoshas.map(d => `<li style="margin-bottom:2px;">${d}</li>`).join('')}
+    <!-- DOSHAS BOX -->
+    <div style="background:#fff1f2;border:1px solid #fecdd3;padding:14px 18px;border-radius:10px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:800;color:#be123c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">${t.criticalFlawsTitle} (${criticalDoshas.length})</div>
+      <ul style="margin:0;padding-left:16px;color:#9f1239;font-size:10px;font-weight:600;line-height:1.5;">
+        ${criticalDoshas.map(d => `<li style="margin-bottom:3px;">${d}</li>`).join('')}
       </ul>
     </div>` : ''}
 
     <!-- BREAKDOWN TABLE -->
-    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;border-bottom:2px solid #e2e8f0;padding-bottom:2px;margin:10px 0 6px 0;">${t.breakdownTitle}</div>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9px;">
+    <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:#0f172a;border-bottom:2px solid #4f46e5;padding-bottom:4px;margin:18px 0 10px 0;">${t.breakdownTitle}</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:10px;">
       <thead>
         <tr>
-          <th style="background:#4f46e5;color:#fff;font-weight:700;text-align:left;padding:4px 6px;text-transform:uppercase;font-size:7px;">${t.tableZone}</th>
-          <th style="background:#4f46e5;color:#fff;font-weight:700;text-align:left;padding:4px 6px;text-transform:uppercase;font-size:7px;">${t.tablePlacement}</th>
-          <th style="background:#4f46e5;color:#fff;font-weight:700;text-align:left;padding:4px 6px;text-transform:uppercase;font-size:7px;">${t.tableStatus}</th>
-          <th style="background:#4f46e5;color:#fff;font-weight:700;text-align:left;padding:4px 6px;text-transform:uppercase;font-size:7px;">${t.tableScore}</th>
+          <th style="background:#4f46e5;color:#ffffff;font-weight:700;text-align:left;padding:7px 10px;text-transform:uppercase;font-size:8px;letter-spacing:0.5px;border-radius:4px 0 0 0;">${t.tableZone}</th>
+          <th style="background:#4f46e5;color:#ffffff;font-weight:700;text-align:left;padding:7px 10px;text-transform:uppercase;font-size:8px;letter-spacing:0.5px;">${t.tablePlacement}</th>
+          <th style="background:#4f46e5;color:#ffffff;font-weight:700;text-align:left;padding:7px 10px;text-transform:uppercase;font-size:8px;letter-spacing:0.5px;">${t.tableStatus}</th>
+          <th style="background:#4f46e5;color:#ffffff;font-weight:700;text-align:left;padding:7px 10px;text-transform:uppercase;font-size:8px;letter-spacing:0.5px;border-radius:0 4px 0 0;">${t.tableScore}</th>
         </tr>
       </thead>
       <tbody>
@@ -369,30 +369,30 @@ const buildReportElement = ({
           const statusColor = item.status === 'Auspicious' ? 'background:#dcfce7;color:#14532d' : item.status === 'Neutral' ? 'background:#fef3c7;color:#78350f' : 'background:#ffe4e6;color:#881337';
           const statusLabel = item.status === 'Auspicious' ? t.auspicious : item.status === 'Neutral' ? t.neutral : t.malefic;
           return `<tr>
-            <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};"><strong>${k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')}</strong></td>
-            <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};">${val}</td>
-            <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};"><span style="padding:1px 6px;border-radius:9999px;font-weight:700;font-size:8px;display:inline-block;${statusColor};">${statusLabel}</span></td>
-            <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};"><strong>${item.score}</strong> / ${item.max}</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};"><strong>${k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')}</strong></td>
+            <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};">${val}</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};"><span style="padding:2px 8px;border-radius:9999px;font-weight:700;font-size:8.5px;display:inline-block;${statusColor};">${statusLabel}</span></td>
+            <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;color:#334155;background:${bgColor};"><strong>${item.score}</strong> / ${item.max}</td>
           </tr>`;
         }).join('')}
       </tbody>
     </table>
 
-    <!-- REMEDIES -->
-    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;border-bottom:2px solid #e2e8f0;padding-bottom:2px;margin:10px 0 6px 0;">${t.remediesTitle}</div>
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px;border-radius:8px;margin-bottom:10px;">${remediesHtml}</div>
+    <!-- REMEDIES SECTION -->
+    <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:#0f172a;border-bottom:2px solid #4f46e5;padding-bottom:4px;margin:18px 0 10px 0;">${t.remediesTitle}</div>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:14px 18px;border-radius:10px;margin-bottom:16px;">${remediesHtml}</div>
 
     <!-- CONSULTANT CARD -->
-    <div style="background:#eef2ff;border:1px solid #c7d2fe;padding:10px 14px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+    <div style="background:linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%);border:1px solid #c7d2fe;padding:14px 20px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
       <div>
-        <div style="font-size:10px;font-weight:800;color:#4338ca;text-transform:uppercase;margin:0;">${t.consultantTitle}</div>
-        <div style="font-size:8px;color:#3730a3;margin:1px 0 0 0;">${t.consultantDesc}</div>
+        <div style="font-size:11px;font-weight:800;color:#4338ca;text-transform:uppercase;margin:0;">${t.consultantTitle}</div>
+        <div style="font-size:9px;color:#3730a3;margin:2px 0 0 0;">${t.consultantDesc}</div>
       </div>
-      <div style="font-size:11px;font-weight:900;color:#4338ca;background:#fff;padding:3px 8px;border-radius:5px;border:1px solid #c7d2fe;white-space:nowrap;">+91 81403 95693</div>
+      <div style="font-size:12px;font-weight:900;color:#4338ca;background:#ffffff;padding:5px 12px;border-radius:6px;border:1px solid #c7d2fe;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.05);">+91 81403 95693</div>
     </div>
 
     <!-- FOOTER -->
-    <div style="margin-top:10px;text-align:center;font-size:7px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:6px;">${t.footerText}</div>
+    <div style="margin-top:16px;text-align:center;font-size:8px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:8px;">${t.footerText}</div>
   `;
 
   return el;
@@ -400,8 +400,8 @@ const buildReportElement = ({
 
 /**
  * Generate a Vastu Remedies PDF Report.
- * Works identically on phones and laptops by rendering a fixed-width
- * DOM element with all inline styles, then capturing it with html2canvas.
+ * Renders an exact 794px A4 element in an off-screen container,
+ * producing 100% full-width, perfectly centered, pixel-crisp PDFs.
  */
 export const generateRemediesPdf = async ({
   language = 'en',
@@ -440,9 +440,9 @@ export const generateRemediesPdf = async ({
     .split('\n\n')
     .map(block => {
       return block.split('\n').map(line => {
-        if (line.match(/^\d+\.\s/)) return `<div style="margin:8px 0 3px 0;color:#1e293b;font-size:11px;font-weight:700;">${line}</div>`;
-        if (line.startsWith('•')) return `<div style="margin:2px 0 2px 10px;color:#334155;font-size:10px;line-height:1.4;">${line}</div>`;
-        if (line.trim()) return `<div style="margin:2px 0;color:#334155;font-size:10px;line-height:1.4;">${line}</div>`;
+        if (line.match(/^\d+\.\s/)) return `<div style="margin:10px 0 4px 0;color:#1e293b;font-size:11px;font-weight:800;">${line}</div>`;
+        if (line.startsWith('•')) return `<div style="margin:3px 0 3px 12px;color:#334155;font-size:10px;line-height:1.5;">${line}</div>`;
+        if (line.trim()) return `<div style="margin:3px 0;color:#334155;font-size:10px;line-height:1.5;">${line}</div>`;
         return '';
       }).join('');
     }).join('');
@@ -455,17 +455,15 @@ export const generateRemediesPdf = async ({
     criticalDoshas, formattedDate, scoreColor, remediesHtml
   });
 
-  // Create a wrapper that is on-screen but invisible to the user.
-  // html2canvas needs the element in the normal document flow to measure
-  // layout correctly. Width is set to match A4 content area at 10mm margins:
-  // A4 = 210mm, content = 210 - 10 - 10 = 190mm ≈ 720px at 96dpi
-  const PDF_CONTENT_WIDTH = 720;
+  // Create an off-screen container for rendering.
+  // Using position: absolute; left: -9999px prevents viewport scroll/opacity miscalculations in html2canvas.
+  const PDF_WIDTH_PX = 794;
   const wrapper = document.createElement('div');
-  wrapper.style.cssText = `position:fixed;left:0;top:0;width:${PDF_CONTENT_WIDTH}px;opacity:0;pointer-events:none;z-index:-1;overflow:hidden;`;
+  wrapper.style.cssText = `position:absolute;left:-9999px;top:0;width:${PDF_WIDTH_PX}px;background:#ffffff;overflow:hidden;`;
   wrapper.appendChild(reportEl);
   document.body.appendChild(wrapper);
 
-  // Allow the browser one frame to lay out the element
+  // Allow the browser two frames to fully lay out and calculate exact dimensions
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
   try {
@@ -473,15 +471,18 @@ export const generateRemediesPdf = async ({
     if (html2pdf) {
       await html2pdf()
         .set({
-          margin: [10, 10, 10, 10],
+          margin: 0,
           filename: fileName,
-          image: { type: 'jpeg', quality: 0.95 },
+          image: { type: 'jpeg', quality: 0.98 },
           html2canvas: {
             scale: 2,
             useCORS: true,
             logging: false,
-            width: PDF_CONTENT_WIDTH,
-            windowWidth: PDF_CONTENT_WIDTH
+            scrollX: 0,
+            scrollY: 0,
+            x: 0,
+            y: 0,
+            windowWidth: PDF_WIDTH_PX
           },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
@@ -489,7 +490,9 @@ export const generateRemediesPdf = async ({
         .from(reportEl)
         .save();
 
-      document.body.removeChild(wrapper);
+      if (document.body.contains(wrapper)) {
+        document.body.removeChild(wrapper);
+      }
       return;
     }
   } catch (pdfErr) {
@@ -506,12 +509,12 @@ export const generateRemediesPdf = async ({
 <html lang="${language}">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=750">
+  <meta name="viewport" content="width=794">
   <title>${t.reportTitle} - ${fullName}</title>
   <style>
-    @page { size: A4; margin: 8mm; }
+    @page { size: A4; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: #fff; margin: 0; padding: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: #fff; margin: 0; padding: 0; display: flex; justify-content: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   </style>
 </head>
 <body>${reportEl.outerHTML}</body>
@@ -539,4 +542,3 @@ export const generateRemediesPdf = async ({
     }
   }
 };
-

@@ -61,8 +61,8 @@ Keep responses professional, encouraging, authoritative, and structured clearly 
       // Models to try in order of preference (current-gen first)
       const modelsToTry = [
         process.env.GEMINI_MODEL,       // user-configured model from .env
-        'gemini-2.5-flash',             // latest stable flash model
-        'gemini-3.5-flash-lite',        // ultra-fast lite model
+        'gemini-3.5-flash-lite',        // ultra-fast current model
+        'gemini-3.5-flash',             // latest flash model
         'gemini-2.5-flash-lite',        // fallback lite
       ].filter(Boolean);
 
