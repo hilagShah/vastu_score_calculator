@@ -27,6 +27,7 @@ import { loadRazorpaySdk } from '../utils/loadRazorpaySdk';
 const ResultsDashboard = ({ reportData, onReset }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const [pdfLanguage, setPdfLanguage] = useState('en');
   const [isPaid, setIsPaid] = useState(false);
 
@@ -114,14 +115,14 @@ const ResultsDashboard = ({ reportData, onReset }) => {
       return;
     }
 
-    setGeneratingPdf(true);
+    setPaymentLoading(true);
 
     try {
       // 1. Dynamically load the Razorpay SDK
       const sdkLoaded = await loadRazorpaySdk();
       if (!sdkLoaded) {
         alert('Razorpay SDK failed to load. Please check your internet connection.');
-        setGeneratingPdf(false);
+        setPaymentLoading(false);
         return;
       }
 
@@ -135,7 +136,9 @@ const ResultsDashboard = ({ reportData, onReset }) => {
           client_name: fullName || 'Valued Client',
           client_email: email || 'N/A'
         }
-      });
+      }, { timeout: 8000 });
+
+      setPaymentLoading(false);
 
       if (!orderRes.data?.success) {
         throw new Error(orderRes.data?.message || 'Failed to initialize payment order on server.');
@@ -175,7 +178,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
             if (verifyRes.data?.success) {
               setIsPaid(true);
               console.log('✅ Payment verified successfully!');
-              // 5. Generate and download PDF
+              // 5. Generate and download PDF only AFTER successful verification
               await fetchAndGeneratePdf();
             } else {
               throw new Error(verifyRes.data?.message || 'Payment signature verification failed.');
@@ -183,23 +186,20 @@ const ResultsDashboard = ({ reportData, onReset }) => {
           } catch (verifyErr) {
             console.error('❌ Verification Error:', verifyErr);
             alert('Payment Verification Failed: ' + (verifyErr.response?.data?.message || verifyErr.message));
-            setGeneratingPdf(false);
           }
         },
         modal: {
           ondismiss: () => {
-            setGeneratingPdf(false);
             console.log('Payment modal closed by user.');
           }
         }
       };
 
-      // 6. Open Razorpay Checkout Modal
+      // 6. Open Razorpay Checkout Modal directly
       const rzp = new window.Razorpay(options);
 
       rzp.on('payment.failed', (response) => {
         console.error('❌ Razorpay Payment Failed Event:', response.error);
-        setGeneratingPdf(false);
         alert(`Payment Failed: ${response.error.description || 'Transaction declined'}`);
       });
 
@@ -207,7 +207,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
 
     } catch (err) {
       console.error('❌ Payment Launch Error:', err);
-      setGeneratingPdf(false);
+      setPaymentLoading(false);
       alert('Failed to launch payment gateway: ' + (err.response?.data?.message || err.message));
     }
   };
@@ -325,12 +325,16 @@ const ResultsDashboard = ({ reportData, onReset }) => {
 
           <button
             onClick={handleDownloadPdf}
-            disabled={generatingPdf}
+            disabled={generatingPdf || paymentLoading}
             className="flex items-center justify-center gap-1.5 py-2 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md transition-colors w-full sm:w-auto cursor-pointer"
           >
-            {generatingPdf ? (
+            {paymentLoading ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing...
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Opening Checkout...
+              </>
+            ) : generatingPdf ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating PDF...
               </>
             ) : isPaid ? (
               <>
@@ -648,12 +652,16 @@ const ResultsDashboard = ({ reportData, onReset }) => {
 
           <button
             onClick={handleDownloadPdf}
-            disabled={generatingPdf}
+            disabled={generatingPdf || paymentLoading}
             className="w-full sm:w-auto py-3 px-5 text-xs font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
-            {generatingPdf ? (
+            {paymentLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                <Loader2 className="w-4 h-4 animate-spin" /> Opening Checkout...
+              </>
+            ) : generatingPdf ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Generating PDF...
               </>
             ) : isPaid ? (
               <>
