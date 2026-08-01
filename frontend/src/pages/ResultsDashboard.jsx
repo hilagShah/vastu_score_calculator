@@ -126,10 +126,13 @@ const ResultsDashboard = ({ reportData, onReset }) => {
         return;
       }
 
+      const API_URL = getApiUrl();
+      const defaultKey = (import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKQdfHnsqnuWpw').trim();
+
       let order_id = undefined;
       let orderAmount = 49900;
       let orderCurrency = 'INR';
-      let activeKey = razorpayKey;
+      let activeKey = defaultKey;
 
       try {
         const orderRes = await axios.post(`${API_URL}/api/payments/create-order`, {
