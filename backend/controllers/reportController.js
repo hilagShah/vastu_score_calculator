@@ -287,6 +287,7 @@ const calculateVastuScoreDetails = (inputs) => {
 
 // Create a new report
 exports.createReport = async (req, res) => {
+  console.log('>>> createReport called. Body keys:', Object.keys(req.body));
   try {
     const {
       fullName,
@@ -350,20 +351,16 @@ exports.createReport = async (req, res) => {
       defects: scoreResults.defects
     });
 
+    // Generate ID for response
+    newReport._id = newReport._id || new mongoose.Types.ObjectId();
+
+    // Save to MongoDB asynchronously in background without blocking HTTP response
     if (mongoose.connection.readyState === 1) {
-      try {
-        await Promise.race([
-          newReport.save(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('MongoDB save timed out')), 3000))
-        ]);
+      newReport.save().then(() => {
         console.log('UserReport saved to MongoDB successfully.');
-      } catch (dbError) {
-        console.warn('Database save skipped/failed. Proceeding with instant response:', dbError.message);
-        newReport._id = newReport._id || new mongoose.Types.ObjectId();
-      }
-    } else {
-      console.warn(`MongoDB connection not ready (readyState=${mongoose.connection.readyState}). Proceeding with instant response.`);
-      newReport._id = newReport._id || new mongoose.Types.ObjectId();
+      }).catch((dbError) => {
+        console.warn('Database background save notice:', dbError.message);
+      });
     }
 
     return res.status(201).json({
