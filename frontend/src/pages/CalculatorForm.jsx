@@ -104,16 +104,6 @@ const CalculatorForm = ({ onComplete }) => {
         setError('Please enter a valid mobile number (at least 10 digits).');
         return;
       }
-
-      // Fire background lead capture to ensure Name & Phone are recorded in DB immediately
-      try {
-        const API_URL = getApiUrl();
-        axios.post(`${API_URL}/api/reports`, {
-          fullName: fullName.trim(),
-          phone: phone.trim(),
-          ...directions
-        }).catch(() => {});
-      } catch (e) {}
     }
     setError('');
     setStep((prev) => prev + 1);
@@ -157,13 +147,7 @@ const CalculatorForm = ({ onComplete }) => {
         onComplete(localReport);
       }
     } catch (err) {
-      console.warn('Backend server response delayed. Using client calculation fallback & background save:', err.message);
-      // Guarantee persistence by retrying save asynchronously in background
-      try {
-        const API_URL = getApiUrl();
-        axios.post(`${API_URL}/api/reports`, payload).catch(() => {});
-      } catch (e) {}
-
+      console.warn('Backend response delayed. Using client-side calculation:', err.message);
       const localReport = calculateVastuScoreDetails(payload);
       onComplete(localReport);
     } finally {
