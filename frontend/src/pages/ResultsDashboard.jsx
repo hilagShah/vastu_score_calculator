@@ -127,94 +127,100 @@ const ResultsDashboard = ({ reportData, onReset }) => {
       }
 
       const API_URL = getApiUrl();
+      const razorpayKey = (import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKQdfHnsqnuWpw').trim();
 
-      let order_id = undefined;
-      let orderAmount = 49900;
-      let orderCurrency = 'INR';
-      let razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKQdfHnsqnuWpw';
-
-      try {
-        const orderRes = await axios.post(`${API_URL}/api/payments/create-order`, {
-          amount: 499,
-          currency: 'INR',
-          notes: {
-            client_name: fullName || 'Valued Client',
-            client_email: email || 'N/A'
-          }
-        }, { timeout: 15000 });
-
-        if (orderRes.data?.success) {
-          const orderData = orderRes.data.data || orderRes.data;
-          order_id = orderData.order_id;
-          orderAmount = orderData.amount || 49900;
-          orderCurrency = orderData.currency || 'INR';
-          if (orderData.key_id) razorpayKey = orderData.key_id;
+      // 2. Request backend to create a Razorpay Order (₹499 INR = 49900 paise)
+      const orderRes = await axios.post(`${API_URL}/api/payments/create-order`, {
+        amount: 499,
+        currency: 'INR',
+        notes: {
+          client_name: fullName || 'Valued Client',
+          client_email: email || 'N/A'
         }
-      } catch (orderErr) {
-        console.warn('⚠️ Server order creation timeout, launching Checkout directly:', orderErr.message);
-      } finally {
-        setPaymentLoading(false);
+      }, { timeout: 15000 });
+
+      setPaymentLoading(false);
+
+      if (!orderRes.data?.success || (!orderRes.data?.order_id && !orderRes.data?.data?.order_id)) {
+        throw new Error(orderRes.data?.message || 'Failed to initialize a valid Razorpay Order ID from backend.');
       }
 
-      // Configure Razorpay Modal Options
+      const orderData = orderRes.data.data || orderRes.data;
+      const order_id = orderData.order_id;
+      const orderAmount = Number(orderData.amount) || 49900;
+      const orderCurrency = (orderData.currency || 'INR').toUpperCase();
+      const activeKey = (orderData.key_id || razorpayKey).trim();
+
+      // 3. Configure Razorpay Modal Options with perfect structure & sanitization
       const options = {
-        key: razorpayKey,
+        key: activeKey,
         amount: orderAmount,
         currency: orderCurrency,
         name: 'Vastu Harmony Consultations',
         description: 'Unlock & Download Tailored Remedies PDF Report',
+        order_id: order_id,
         prefill: {
-          name: fullName || '',
-          email: email || '',
-          contact: phone || ''
+          name: (fullName || '').trim(),
+          email: (email || '').trim(),
+          contact: (phone || '').trim()
         },
         theme: {
           color: '#4f46e5'
         },
         handler: async (response) => {
           try {
-            console.log('💳 Payment Modal Response Received:', response);
+            console.log('💳 Payment Success Callback Received:', response);
 
-            if (response.razorpay_signature && response.razorpay_order_id) {
-              const verifyRes = await axios.post(`${API_URL}/api/payments/verify-payment`, {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
-              });
+            // 4. Verify Payment Signature
+            const verifyRes = await axios.post(`${API_URL}/api/payments/verify-payment`, {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
 
-              if (verifyRes.data?.success) {
-                setIsPaid(true);
-                await fetchAndGeneratePdf();
-              } else {
-                throw new Error(verifyRes.data?.message || 'Payment signature verification failed.');
-              }
-            } else {
+            if (verifyRes.data?.success) {
               setIsPaid(true);
+              console.log('✅ Signature verified successfully!');
               await fetchAndGeneratePdf();
+            } else {
+              throw new Error(verifyRes.data?.message || 'Payment signature verification failed.');
             }
           } catch (verifyErr) {
             console.error('❌ Verification Error:', verifyErr);
-            setIsPaid(true);
-            await fetchAndGeneratePdf();
+            alert('Payment Verification Failed: ' + (verifyErr.response?.data?.message || verifyErr.message));
           }
         },
         modal: {
           ondismiss: () => {
             console.log('Payment modal closed by user.');
+            setPaymentLoading(false);
           }
         }
       };
 
-      if (order_id) {
-        options.order_id = order_id;
-      }
-
-      // Open Razorpay Checkout Modal directly
+      // 4. Initialize Razorpay instance
       const rzp = new window.Razorpay(options);
 
-      rzp.on('payment.failed', (response) => {
-        console.error('❌ Razorpay Payment Failed Event:', response.error);
-        alert(`Payment Failed: ${response.error.description || 'Transaction declined'}`);
+      // 5. Detailed failure logging (code, description, source, step, reason)
+      rzp.on('payment.failed', function (response) {
+        const error = response.error || {};
+        console.error('❌ Razorpay Payment Failed Event Breakdown:', {
+          code: error.code || 'N/A',
+          description: error.description || 'N/A',
+          source: error.source || 'N/A',
+          step: error.step || 'N/A',
+          reason: error.reason || 'N/A',
+          metadata: error.metadata || {}
+        });
+
+        alert(
+          `Payment Failed!\n\n` +
+          `Code: ${error.code || 'UNKNOWN'}\n` +
+          `Description: ${error.description || 'Transaction declined'}\n` +
+          `Source: ${error.source || 'N/A'}\n` +
+          `Step: ${error.step || 'N/A'}\n` +
+          `Reason: ${error.reason || 'N/A'}`
+        );
       });
 
       rzp.open();
