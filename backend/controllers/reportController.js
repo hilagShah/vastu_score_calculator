@@ -338,7 +338,7 @@ exports.createReport = async (req, res) => {
 
     const scoreResults = calculateVastuScoreDetails(inputs);
 
-    // Save report to DB with fallback
+    // Save report to DB
     const newReport = new UserReport({
       fullName,
       phone,
@@ -349,15 +349,12 @@ exports.createReport = async (req, res) => {
       defects: scoreResults.defects
     });
 
-    // Generate ID for response
-    newReport._id = newReport._id || new mongoose.Types.ObjectId();
-
-    // Always save user lead record to MongoDB in background
-    newReport.save().then(() => {
-      console.log(`✅ User Lead Saved to MongoDB: ${fullName} (${phone}) | Score: ${scoreResults.vastuScore}`);
-    }).catch((dbError) => {
-      console.warn('⚠️ Database save notice:', dbError.message);
-    });
+    try {
+      await newReport.save();
+      console.log(`✅ User Lead Saved to MongoDB Atlas: ${fullName} (${phone}) | ID: ${newReport._id}`);
+    } catch (dbError) {
+      console.error('❌ MongoDB Atlas Save Error:', dbError.message);
+    }
 
     return res.status(201).json({
       success: true,
