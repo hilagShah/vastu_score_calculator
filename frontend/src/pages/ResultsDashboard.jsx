@@ -127,7 +127,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
       }
 
       const API_URL = getApiUrl();
-      const defaultKey = (import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKQdfHnsqnuWpw').trim();
+      const defaultKey = (import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TKSLjUpinPPwYg').trim();
 
       let order_id = undefined;
       let orderAmount = 49900;
