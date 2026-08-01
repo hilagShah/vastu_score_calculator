@@ -378,14 +378,17 @@ exports.createReport = async (req, res) => {
 
     if (mongoose.connection.readyState === 1) {
       try {
-        await newReport.save();
+        await Promise.race([
+          newReport.save(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('MongoDB save timed out')), 3000))
+        ]);
         console.log('UserReport saved to MongoDB successfully.');
       } catch (dbError) {
-        console.warn('Database save failed. Proceeding with temporary local memory response:', dbError.message);
+        console.warn('Database save skipped/failed. Proceeding with instant response:', dbError.message);
         newReport._id = newReport._id || new mongoose.Types.ObjectId();
       }
     } else {
-      console.warn(`MongoDB connection not ready (readyState=${mongoose.connection.readyState}). Proceeding with local memory response.`);
+      console.warn(`MongoDB connection not ready (readyState=${mongoose.connection.readyState}). Proceeding with instant response.`);
       newReport._id = newReport._id || new mongoose.Types.ObjectId();
     }
 
