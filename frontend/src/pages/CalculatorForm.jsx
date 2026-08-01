@@ -4,6 +4,7 @@ import { User, Mail, Phone, ChevronRight, ChevronLeft, Loader2, Sparkles, Layout
 import StepProgressBar from '../components/StepProgressBar';
 import DirectionSelect from '../components/DirectionSelect';
 import { getApiUrl } from '../utils/apiUrl';
+import { calculateVastuScoreDetails } from '../utils/calculateVastuScore';
 
 const CalculatorForm = ({ onComplete }) => {
   const [step, setStep] = useState(1);
@@ -136,18 +137,19 @@ const CalculatorForm = ({ onComplete }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 20000,
+        timeout: 3000,
       });
 
       if (response.data?.success) {
         onComplete(response.data.data);
       } else {
-        setError('Failed to calculate Vastu score. Please try again.');
+        const localReport = calculateVastuScoreDetails(payload);
+        onComplete(localReport);
       }
     } catch (err) {
-      console.error(err);
-      const serverMsg = err.response?.data?.message || err.message;
-      setError(`Submission error: ${serverMsg}`);
+      console.warn('Backend server response delayed or offline. Using instant client-side calculation fallback:', err.message);
+      const localReport = calculateVastuScoreDetails(payload);
+      onComplete(localReport);
     } finally {
       setLoading(false);
     }
