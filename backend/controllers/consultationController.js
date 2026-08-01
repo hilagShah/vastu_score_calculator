@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const ConsultationRequest = require('../models/ConsultationRequest');
 
+const connectDB = require('../config/db');
+
 // In-memory fallback array for requests if DB is not connected
 let memoryConsultations = [];
 
@@ -13,6 +15,8 @@ exports.createConsultation = async (req, res) => {
       return res.status(400).json({ message: 'Full name and phone number are required.' });
     }
 
+    await connectDB();
+
     const newRequest = new ConsultationRequest({
       fullName,
       email,
@@ -23,18 +27,11 @@ exports.createConsultation = async (req, res) => {
       status: 'Pending',
     });
 
-    if (mongoose.connection.readyState === 1) {
-      try {
-        await newRequest.save();
-        console.log('✅ Consultation Request saved to MongoDB successfully:', newRequest._id);
-      } catch (dbError) {
-        console.warn('⚠️ Database save failed for consultation. Using memory fallback:', dbError.message);
-        newRequest._id = newRequest._id || new mongoose.Types.ObjectId().toString();
-        newRequest.createdAt = new Date();
-        memoryConsultations.unshift(newRequest);
-      }
-    } else {
-      console.warn(`⚠️ MongoDB connection not ready (readyState=${mongoose.connection.readyState}). Using memory fallback.`);
+    try {
+      await newRequest.save();
+      console.log('✅ Consultation Request saved to MongoDB successfully:', newRequest._id);
+    } catch (dbError) {
+      console.warn('⚠️ Database save failed for consultation. Using memory fallback:', dbError.message);
       newRequest._id = newRequest._id || new mongoose.Types.ObjectId().toString();
       newRequest.createdAt = new Date();
       memoryConsultations.unshift(newRequest);

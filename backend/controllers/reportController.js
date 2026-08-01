@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const UserReport = require('../models/UserReport');
+const connectDB = require('../config/db');
 
 // Vastu Scoring engine helper function
 const calculateVastuScoreDetails = (inputs) => {
@@ -338,6 +339,9 @@ exports.createReport = async (req, res) => {
 
     const scoreResults = calculateVastuScoreDetails(inputs);
 
+    // Ensure MongoDB connection is established (critical for Vercel serverless)
+    await connectDB();
+
     // Save report to DB
     const newReport = new UserReport({
       fullName,
@@ -349,16 +353,11 @@ exports.createReport = async (req, res) => {
       defects: scoreResults.defects
     });
 
-    // Save report to MongoDB Atlas in background — only if DB is connected
-    // Mongoose buffers operations when disconnected, which blocks the event loop
-    if (mongoose.connection.readyState === 1) {
-      newReport.save().then(() => {
-        console.log(`✅ User Lead Saved to MongoDB Atlas: ${fullName} (${phone}) | ID: ${newReport._id}`);
-      }).catch((dbError) => {
-        console.error('❌ MongoDB Atlas Save Error:', dbError.message);
-      });
-    } else {
-      console.warn(`⚠️ MongoDB not connected (readyState: ${mongoose.connection.readyState}). Skipping DB save for ${fullName} (${phone}).`);
+    try {
+      await newReport.save();
+      console.log(`✅ User Lead Saved to MongoDB Atlas: ${fullName} (${phone}) | ID: ${newReport._id}`);
+    } catch (dbError) {
+      console.error('❌ MongoDB Atlas Save Error:', dbError.message);
     }
 
     return res.status(201).json({
