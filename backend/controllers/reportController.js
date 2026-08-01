@@ -354,14 +354,12 @@ exports.createReport = async (req, res) => {
     // Generate ID for response
     newReport._id = newReport._id || new mongoose.Types.ObjectId();
 
-    // Save to MongoDB asynchronously in background without blocking HTTP response
-    if (mongoose.connection.readyState === 1) {
-      newReport.save().then(() => {
-        console.log('UserReport saved to MongoDB successfully.');
-      }).catch((dbError) => {
-        console.warn('Database background save notice:', dbError.message);
-      });
-    }
+    // Always save user lead record to MongoDB in background
+    newReport.save().then(() => {
+      console.log(`✅ User Lead Saved to MongoDB: ${fullName} (${phone}) | Score: ${scoreResults.vastuScore}`);
+    }).catch((dbError) => {
+      console.warn('⚠️ Database save notice:', dbError.message);
+    });
 
     return res.status(201).json({
       success: true,

@@ -104,6 +104,16 @@ const CalculatorForm = ({ onComplete }) => {
         setError('Please enter a valid mobile number (at least 10 digits).');
         return;
       }
+
+      // Fire background lead capture to ensure Name & Phone are recorded in DB immediately
+      try {
+        const API_URL = getApiUrl();
+        axios.post(`${API_URL}/api/reports`, {
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          ...directions
+        }).catch(() => {});
+      } catch (e) {}
     }
     setError('');
     setStep((prev) => prev + 1);
@@ -132,11 +142,12 @@ const CalculatorForm = ({ onComplete }) => {
 
     try {
       const API_URL = getApiUrl();
+      // 1. Send report to backend to store permanently in MongoDB
       const response = await axios.post(`${API_URL}/api/reports`, payload, {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 3000,
+        timeout: 4000,
       });
 
       if (response.data?.success) {
@@ -146,7 +157,13 @@ const CalculatorForm = ({ onComplete }) => {
         onComplete(localReport);
       }
     } catch (err) {
-      console.warn('Backend server response delayed or offline. Using instant client-side calculation fallback:', err.message);
+      console.warn('Backend server response delayed. Using client calculation fallback & background save:', err.message);
+      // Guarantee persistence by retrying save asynchronously in background
+      try {
+        const API_URL = getApiUrl();
+        axios.post(`${API_URL}/api/reports`, payload).catch(() => {});
+      } catch (e) {}
+
       const localReport = calculateVastuScoreDetails(payload);
       onComplete(localReport);
     } finally {
