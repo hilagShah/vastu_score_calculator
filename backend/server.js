@@ -5,6 +5,7 @@ const path = require('path');
 const connectDB = require('./config/db');
 const reportRoutes = require('./routes/reportRoutes');
 const consultationRoutes = require('./routes/consultationRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -35,6 +36,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/reports', reportRoutes);
 app.use('/api/consultations', consultationRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
