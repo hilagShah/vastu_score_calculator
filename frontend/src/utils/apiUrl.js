@@ -8,5 +8,5 @@ export const getApiUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
   const hostname = window.location.hostname || 'localhost';
-  return window.location.port ? `${window.location.protocol}//${hostname}:5001` : '';
+  return window.location.port ? `${window.location.protocol}//${hostname}:5002` : '';
 };
