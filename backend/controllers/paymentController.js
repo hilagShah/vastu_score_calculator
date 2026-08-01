@@ -27,9 +27,9 @@ const getRazorpayInstance = () => {
  */
 exports.createOrder = async (req, res) => {
   try {
-    const { amount = 499, currency = 'INR', receipt, notes = {} } = req.body;
+    const { amount = 99, currency = 'INR', receipt, notes = {} } = req.body;
 
-    // Convert amount to paise if passed in Rupees (e.g. 499 -> 49900 Paise)
+    // Convert amount to paise if passed in Rupees (e.g. 99 -> 9900 Paise)
     const rawAmount = Number(amount);
     const amountInPaise = Math.round(rawAmount < 1000 ? rawAmount * 100 : rawAmount);
 

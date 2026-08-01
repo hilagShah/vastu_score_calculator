@@ -96,12 +96,8 @@ const CalculatorForm = ({ onComplete }) => {
   const handleNext = (e) => {
     e.preventDefault();
     if (step === 1) {
-      if (!fullName.trim() || !email.trim() || !phone.trim()) {
-        setError('Please fill in all personal details.');
-        return;
-      }
-      if (!/\S+@\S+\.\S+/.test(email)) {
-        setError('Please enter a valid email address.');
+      if (!fullName.trim() || !phone.trim()) {
+        setError('Please fill in your name and phone number.');
         return;
       }
     }
@@ -226,20 +222,6 @@ const CalculatorForm = ({ onComplete }) => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Email Address *</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="email"
-                  required
-                  placeholder="e.g. john@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-minimalist pl-10"
-                />
-              </div>
-            </div>
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Phone Number *</label>

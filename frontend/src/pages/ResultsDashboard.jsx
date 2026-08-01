@@ -130,13 +130,13 @@ const ResultsDashboard = ({ reportData, onReset }) => {
       const defaultKey = (import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_TKT73ZIiuXxyi1').trim();
 
       let order_id = undefined;
-      let orderAmount = 49900;
+      let orderAmount = 9900;
       let orderCurrency = 'INR';
       let activeKey = defaultKey;
 
       try {
         const orderRes = await axios.post(`${API_URL}/api/payments/create-order`, {
-          amount: 499,
+          amount: 99,
           currency: 'INR',
           notes: {
             client_name: fullName || 'Valued Client',
@@ -147,7 +147,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
         if (orderRes.data?.success) {
           const orderData = orderRes.data.data || orderRes.data;
           order_id = orderData.order_id;
-          orderAmount = Number(orderData.amount) || 49900;
+          orderAmount = Number(orderData.amount) || 9900;
           orderCurrency = (orderData.currency || 'INR').toUpperCase();
           if (orderData.key_id) activeKey = orderData.key_id.trim();
         }
@@ -376,7 +376,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
               </>
             ) : (
               <>
-                <FileText className="w-3.5 h-3.5" /> Download Remedies PDF (₹499)
+                <FileText className="w-3.5 h-3.5" /> Download Remedies PDF (₹99)
               </>
             )}
           </button>
@@ -500,7 +500,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
                   </>
                 ) : (
                   <>
-                    <Download className="w-4 h-4" /> Download Remedies PDF (₹499)
+                    <Download className="w-4 h-4" /> Download Remedies PDF (₹99)
                   </>
                 )}
               </button>
@@ -703,7 +703,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
               </>
             ) : (
               <>
-                <FileText className="w-4 h-4" /> Download Remedies PDF (₹499)
+                <FileText className="w-4 h-4" /> Download Remedies PDF (₹99)
               </>
             )}
           </button>
