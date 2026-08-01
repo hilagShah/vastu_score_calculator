@@ -20,16 +20,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Ensure MongoDB connection for serverless invocations
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-  } catch (err) {
-    console.error('DB Middleware Connection Error:', err);
-  }
-  next();
-});
-
 // Serve static uploads directory for local fallback
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
