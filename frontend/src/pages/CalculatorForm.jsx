@@ -136,6 +136,7 @@ const CalculatorForm = ({ onComplete }) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        timeout: 10000,
       });
 
       if (response.data?.success) {
