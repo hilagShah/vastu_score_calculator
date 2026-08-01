@@ -72,7 +72,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
           inputs,
           criticalDoshas,
           defects
-        });
+        }, { timeout: 6000 });
 
         if (response.data?.success && response.data?.data?.remediesText) {
           remediesText = response.data.data.remediesText;

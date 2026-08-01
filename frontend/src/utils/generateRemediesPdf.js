@@ -297,10 +297,17 @@ const buildDefaultRemediesText = ({ language = 'en', totalScore = 70, tier = 'Mo
 const loadHtml2PdfScript = () => {
   return new Promise((resolve) => {
     if (window.html2pdf) return resolve(window.html2pdf);
+    const timeout = setTimeout(() => resolve(window.html2pdf || null), 4000);
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-    script.onload = () => resolve(window.html2pdf);
-    script.onerror = () => resolve(null);
+    script.onload = () => {
+      clearTimeout(timeout);
+      resolve(window.html2pdf);
+    };
+    script.onerror = () => {
+      clearTimeout(timeout);
+      resolve(null);
+    };
     document.head.appendChild(script);
   });
 };
