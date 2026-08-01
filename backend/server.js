@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const path = require('path');
 const connectDB = require('./config/db');
 const reportRoutes = require('./routes/reportRoutes');
 const consultationRoutes = require('./routes/consultationRoutes');
@@ -19,9 +18,6 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// Serve static uploads directory for local fallback
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/reports', reportRoutes);

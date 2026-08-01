@@ -28,15 +28,6 @@ const UserReportSchema = new mongoose.Schema({
     plotShape: { type: String, required: true },
     staircaseBalcony: { type: String, required: true },
   },
-  imageUrl: {
-    type: String,
-    required: false,
-    default: '',
-  },
-  imagePublicId: {
-    type: String,
-    default: '',
-  },
   vastuScore: {
     type: Number,
     required: true,

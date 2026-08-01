@@ -1,8 +1,5 @@
-const fs = require('fs');
-const path = require('path');
 const mongoose = require('mongoose');
 const UserReport = require('../models/UserReport');
-const { cloudinary, isConfigured } = require('../config/cloudinary');
 
 // Vastu Scoring engine helper function
 const calculateVastuScoreDetails = (inputs) => {
@@ -324,29 +321,8 @@ exports.createReport = async (req, res) => {
         : [req.body.additionalBathrooms];
     }
 
-    // 1. Image Upload Logic (Optional)
-    let imageUrl = '';
-    let imagePublicId = '';
 
-    if (req.file) {
-      if (isConfigured()) {
-        try {
-          const uploadResult = await cloudinary.uploader.upload(req.file.path, {
-            folder: 'vastu_blueprints',
-          });
-          imageUrl = uploadResult.secure_url;
-          imagePublicId = uploadResult.public_id;
-          fs.unlinkSync(req.file.path);
-        } catch (cloudinaryError) {
-          console.error('Cloudinary Upload Failed. Falling back to local URL:', cloudinaryError);
-          imageUrl = `/uploads/${req.file.filename}`;
-        }
-      } else {
-        imageUrl = `/uploads/${req.file.filename}`;
-      }
-    }
-
-    // 2. Compute Score
+    // Compute Score
     const inputs = {
       mainEntrance,
       kitchen,
@@ -362,14 +338,12 @@ exports.createReport = async (req, res) => {
 
     const scoreResults = calculateVastuScoreDetails(inputs);
 
-    // 3. Save report to DB with fallback
+    // Save report to DB with fallback
     const newReport = new UserReport({
       fullName,
       email,
       phone,
       inputs,
-      imageUrl,
-      imagePublicId,
       vastuScore: scoreResults.vastuScore,
       breakdown: scoreResults.breakdown,
       criticalDoshas: scoreResults.criticalDoshas,
@@ -401,7 +375,6 @@ exports.createReport = async (req, res) => {
         email: newReport.email,
         phone: newReport.phone,
         inputs: newReport.inputs,
-        imageUrl: newReport.imageUrl,
         totalScore: scoreResults.vastuScore,
         tier: scoreResults.tier,
         breakdown: scoreResults.breakdown,
@@ -436,7 +409,6 @@ exports.getReportById = async (req, res) => {
         email: report.email,
         phone: report.phone,
         inputs: report.inputs,
-        imageUrl: report.imageUrl,
         totalScore: report.vastuScore,
         tier: scoreResults.tier,
         breakdown: report.breakdown || scoreResults.breakdown,
@@ -463,7 +435,6 @@ exports.getReports = async (req, res) => {
         email: report.email,
         phone: report.phone,
         inputs: report.inputs,
-        imageUrl: report.imageUrl,
         totalScore: report.vastuScore,
         tier: scoreResults.tier,
         breakdown: report.breakdown || scoreResults.breakdown,
