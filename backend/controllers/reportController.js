@@ -291,7 +291,6 @@ exports.createReport = async (req, res) => {
   try {
     const {
       fullName,
-      email = '',
       phone,
       mainEntrance,
       kitchen,
@@ -342,7 +341,6 @@ exports.createReport = async (req, res) => {
     // Save report to DB with fallback
     const newReport = new UserReport({
       fullName,
-      email,
       phone,
       inputs,
       vastuScore: scoreResults.vastuScore,
@@ -367,7 +365,6 @@ exports.createReport = async (req, res) => {
       data: {
         _id: newReport._id,
         fullName: newReport.fullName,
-        email: newReport.email,
         phone: newReport.phone,
         inputs: newReport.inputs,
         totalScore: scoreResults.vastuScore,
