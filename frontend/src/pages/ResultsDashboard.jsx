@@ -5,7 +5,6 @@ import {
   ShieldAlert, 
   CheckCircle2, 
   User, 
-  Mail, 
   Phone, 
   Calendar, 
   Sparkles, 
@@ -33,7 +32,6 @@ const ResultsDashboard = ({ reportData, onReset }) => {
 
   const { 
     fullName, 
-    email, 
     phone, 
     totalScore, 
     vastuScore, 
@@ -66,7 +64,6 @@ const ResultsDashboard = ({ reportData, onReset }) => {
         const response = await axios.post(`${API_URL}/api/reports/remedies`, {
           language: pdfLanguage,
           fullName,
-          email,
           phone,
           vastuScore: score,
           tier,
@@ -88,7 +85,6 @@ const ResultsDashboard = ({ reportData, onReset }) => {
       await generateRemediesPdf({
         language: pdfLanguage,
         fullName,
-        email,
         phone,
         totalScore: score,
         tier,
@@ -140,7 +136,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
           currency: 'INR',
           notes: {
             client_name: fullName || 'Valued Client',
-            client_email: email || 'N/A'
+            client_phone: phone || 'N/A'
           }
         }, { timeout: 3500 });
 
@@ -166,7 +162,6 @@ const ResultsDashboard = ({ reportData, onReset }) => {
         description: 'Unlock & Download Tailored Remedies PDF Report',
         prefill: {
           name: (fullName || '').trim(),
-          email: (email || '').trim(),
           contact: (phone || '').trim()
         },
         theme: {
@@ -306,7 +301,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
       <ContactExpertModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        initialData={{ fullName, email, phone }} 
+        initialData={{ fullName, phone }} 
       />
 
       {/* PDF Generation Overlay Modal */}
@@ -460,7 +455,6 @@ const ResultsDashboard = ({ reportData, onReset }) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <InfoCard icon={User} label="Owner Name" value={fullName} />
-              <InfoCard icon={Mail} label="Email Address" value={email} />
               <InfoCard icon={Phone} label="Phone Number" value={phone} />
               <InfoCard icon={Calendar} label="Evaluated On" value={dateFormatted} />
             </div>

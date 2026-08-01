@@ -291,7 +291,7 @@ exports.createReport = async (req, res) => {
   try {
     const {
       fullName,
-      email,
+      email = '',
       phone,
       mainEntrance,
       kitchen,
@@ -303,8 +303,8 @@ exports.createReport = async (req, res) => {
       staircaseBalcony
     } = req.body;
 
-    if (!fullName || !email || !phone || !mainEntrance || !kitchen || !masterBedroom || !bathroom || !poojaRoom || !plotFacing || !plotShape || !staircaseBalcony) {
-      return res.status(400).json({ message: 'All form fields are required' });
+    if (!fullName || !phone || !mainEntrance || !kitchen || !masterBedroom || !bathroom || !poojaRoom || !plotFacing || !plotShape || !staircaseBalcony) {
+      return res.status(400).json({ message: 'All form fields (name, phone, directions) are required' });
     }
 
     // Parse array inputs

@@ -7,10 +7,10 @@ let memoryConsultations = [];
 // Create a new expert consultation request
 exports.createConsultation = async (req, res) => {
   try {
-    const { fullName, email, phone, consultationType, timeSlot, message } = req.body;
+    const { fullName, email = '', phone, consultationType, timeSlot, message } = req.body;
 
-    if (!fullName || !email || !phone) {
-      return res.status(400).json({ message: 'Full name, email, and phone number are required.' });
+    if (!fullName || !phone) {
+      return res.status(400).json({ message: 'Full name and phone number are required.' });
     }
 
     const newRequest = new ConsultationRequest({

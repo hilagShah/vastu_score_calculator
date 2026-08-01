@@ -343,7 +343,6 @@ const buildReportElement = ({
       <div><div style="font-size:7.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px;">${t.propertyFacing}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${inputs.plotFacing || 'N/A'}</div></div>
       <div><div style="font-size:7.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px;">${t.plotGeometry}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${inputs.plotShape || 'Square'}</div></div>
       <div><div style="font-size:7.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px;">${t.contactPhone}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${phone}</div></div>
-      <div><div style="font-size:7.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px;">${t.emailAddress}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${email}</div></div>
       <div><div style="font-size:7.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1px;">${t.reportDate}</div><div style="font-weight:700;color:#0f172a;font-size:10px;">${formattedDate}</div></div>
     </div>
 

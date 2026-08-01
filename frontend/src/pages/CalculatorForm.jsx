@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User, Mail, Phone, ChevronRight, ChevronLeft, Loader2, Sparkles, Layout, Plus, Trash2 } from 'lucide-react';
+import { User, Phone, ChevronRight, ChevronLeft, Loader2, Sparkles, Layout, Plus, Trash2 } from 'lucide-react';
 import StepProgressBar from '../components/StepProgressBar';
 import DirectionSelect from '../components/DirectionSelect';
 import { getApiUrl } from '../utils/apiUrl';
@@ -13,7 +13,6 @@ const CalculatorForm = ({ onComplete }) => {
 
   // Form states
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   
   // Vastu direction selections
@@ -97,7 +96,12 @@ const CalculatorForm = ({ onComplete }) => {
     e.preventDefault();
     if (step === 1) {
       if (!fullName.trim() || !phone.trim()) {
-        setError('Please fill in your name and phone number.');
+        setError('Please enter your full name and mobile number.');
+        return;
+      }
+      const cleanPhone = phone.replace(/[\s\-\+\(\)]/g, '');
+      if (!/^[0-9]{10,15}$/.test(cleanPhone)) {
+        setError('Please enter a valid mobile number (at least 10 digits).');
         return;
       }
     }
@@ -118,9 +122,8 @@ const CalculatorForm = ({ onComplete }) => {
 
     // Construct submission payload
     const payload = {
-      fullName,
-      email,
-      phone,
+      fullName: fullName.trim(),
+      phone: phone.trim(),
       ...directions,
       additionalBedrooms,
       additionalBathrooms,

@@ -25,7 +25,7 @@ function App() {
       <ContactExpertModal 
         isOpen={isExpertModalOpen} 
         onClose={() => setIsExpertModalOpen(false)} 
-        initialData={report ? { fullName: report.fullName, email: report.email, phone: report.phone } : {}}
+        initialData={report ? { fullName: report.fullName, phone: report.phone } : {}}
       />
 
       {/* Background Decorator Gradients */}
