@@ -22,11 +22,13 @@ import {
 import ScoreGauge from '../components/ScoreGauge';
 import ContactExpertModal from '../components/ContactExpertModal';
 import { generateRemediesPdf } from '../utils/generateRemediesPdf';
+import { loadRazorpaySdk } from '../utils/loadRazorpaySdk';
 
 const ResultsDashboard = ({ reportData, onReset }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [pdfLanguage, setPdfLanguage] = useState('en');
+  const [isPaid, setIsPaid] = useState(false);
 
   const { 
     fullName, 
@@ -53,7 +55,7 @@ const ResultsDashboard = ({ reportData, onReset }) => {
     minute: '2-digit'
   }) : new Date().toLocaleDateString();
 
-  const handleDownloadPdf = async () => {
+  const fetchAndGeneratePdf = async () => {
     setGeneratingPdf(true);
     try {
       const API_URL = getApiUrl();
@@ -102,6 +104,111 @@ const ResultsDashboard = ({ reportData, onReset }) => {
       alert('Failed to generate PDF report: ' + err.message);
     } finally {
       setGeneratingPdf(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    // If already paid in this session, download directly
+    if (isPaid) {
+      await fetchAndGeneratePdf();
+      return;
+    }
+
+    setGeneratingPdf(true);
+
+    try {
+      // 1. Dynamically load the Razorpay SDK
+      const sdkLoaded = await loadRazorpaySdk();
+      if (!sdkLoaded) {
+        alert('Razorpay SDK failed to load. Please check your internet connection.');
+        setGeneratingPdf(false);
+        return;
+      }
+
+      const API_URL = getApiUrl();
+
+      // 2. Request backend to create a Razorpay Order (₹499 INR)
+      const orderRes = await axios.post(`${API_URL}/api/payments/create-order`, {
+        amount: 499,
+        currency: 'INR',
+        notes: {
+          client_name: fullName || 'Valued Client',
+          client_email: email || 'N/A'
+        }
+      });
+
+      if (!orderRes.data?.success) {
+        throw new Error(orderRes.data?.message || 'Failed to initialize payment order on server.');
+      }
+
+      const orderData = orderRes.data.data || orderRes.data;
+      const { order_id, amount: orderAmount, currency: orderCurrency, key_id } = orderData;
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || key_id || 'rzp_test_TKQdfHnsqnuWpw';
+
+      // 3. Configure Razorpay Modal Options
+      const options = {
+        key: razorpayKey,
+        amount: orderAmount,
+        currency: orderCurrency,
+        name: 'Vastu Harmony Consultations',
+        description: 'Unlock & Download Tailored Remedies PDF Report',
+        order_id: order_id,
+        prefill: {
+          name: fullName || '',
+          email: email || '',
+          contact: phone || ''
+        },
+        theme: {
+          color: '#4f46e5'
+        },
+        handler: async (response) => {
+          try {
+            console.log('💳 Payment Modal Response Received:', response);
+
+            // 4. Verify Payment Signature
+            const verifyRes = await axios.post(`${API_URL}/api/payments/verify-payment`, {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+
+            if (verifyRes.data?.success) {
+              setIsPaid(true);
+              console.log('✅ Payment verified successfully!');
+              // 5. Generate and download PDF
+              await fetchAndGeneratePdf();
+            } else {
+              throw new Error(verifyRes.data?.message || 'Payment signature verification failed.');
+            }
+          } catch (verifyErr) {
+            console.error('❌ Verification Error:', verifyErr);
+            alert('Payment Verification Failed: ' + (verifyErr.response?.data?.message || verifyErr.message));
+            setGeneratingPdf(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setGeneratingPdf(false);
+            console.log('Payment modal closed by user.');
+          }
+        }
+      };
+
+      // 6. Open Razorpay Checkout Modal
+      const rzp = new window.Razorpay(options);
+
+      rzp.on('payment.failed', (response) => {
+        console.error('❌ Razorpay Payment Failed Event:', response.error);
+        setGeneratingPdf(false);
+        alert(`Payment Failed: ${response.error.description || 'Transaction declined'}`);
+      });
+
+      rzp.open();
+
+    } catch (err) {
+      console.error('❌ Payment Launch Error:', err);
+      setGeneratingPdf(false);
+      alert('Failed to launch payment gateway: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -221,7 +328,19 @@ const ResultsDashboard = ({ reportData, onReset }) => {
             disabled={generatingPdf}
             className="flex items-center justify-center gap-1.5 py-2 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md transition-colors w-full sm:w-auto cursor-pointer"
           >
-            <FileText className="w-3.5 h-3.5" /> Download Remedies PDF
+            {generatingPdf ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing...
+              </>
+            ) : isPaid ? (
+              <>
+                <FileText className="w-3.5 h-3.5" /> Download Remedies PDF
+              </>
+            ) : (
+              <>
+                <FileText className="w-3.5 h-3.5" /> Download Remedies PDF (₹499)
+              </>
+            )}
           </button>
 
           <button
@@ -333,7 +452,19 @@ const ResultsDashboard = ({ reportData, onReset }) => {
                 disabled={generatingPdf}
                 className="text-xs font-bold text-emerald-600 uppercase tracking-wider hover:text-emerald-800 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <Download className="w-4 h-4" /> Download Remedies PDF
+                {generatingPdf ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                  </>
+                ) : isPaid ? (
+                  <>
+                    <Download className="w-4 h-4" /> Download Remedies PDF
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" /> Download Remedies PDF (₹499)
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -520,7 +651,19 @@ const ResultsDashboard = ({ reportData, onReset }) => {
             disabled={generatingPdf}
             className="w-full sm:w-auto py-3 px-5 text-xs font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
-            <FileText className="w-4 h-4" /> Download Remedies PDF
+            {generatingPdf ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+              </>
+            ) : isPaid ? (
+              <>
+                <FileText className="w-4 h-4" /> Download Remedies PDF
+              </>
+            ) : (
+              <>
+                <FileText className="w-4 h-4" /> Download Remedies PDF (₹499)
+              </>
+            )}
           </button>
 
           <button
