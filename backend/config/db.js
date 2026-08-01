@@ -24,6 +24,7 @@ const connectDB = async () => {
     connectionAttempted = true;
     const conn = await mongoose.connect(mongoURI, {
       serverSelectionTimeoutMS: 2000,
+      bufferCommands: false, // Don't buffer operations when disconnected — fail fast
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {

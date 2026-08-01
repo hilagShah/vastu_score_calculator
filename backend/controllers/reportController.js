@@ -349,12 +349,17 @@ exports.createReport = async (req, res) => {
       defects: scoreResults.defects
     });
 
-    // Save report to MongoDB Atlas asynchronously in background without blocking HTTP response
-    newReport.save().then(() => {
-      console.log(`✅ User Lead Saved to MongoDB Atlas: ${fullName} (${phone}) | ID: ${newReport._id}`);
-    }).catch((dbError) => {
-      console.error('❌ MongoDB Atlas Save Error:', dbError.message);
-    });
+    // Save report to MongoDB Atlas in background — only if DB is connected
+    // Mongoose buffers operations when disconnected, which blocks the event loop
+    if (mongoose.connection.readyState === 1) {
+      newReport.save().then(() => {
+        console.log(`✅ User Lead Saved to MongoDB Atlas: ${fullName} (${phone}) | ID: ${newReport._id}`);
+      }).catch((dbError) => {
+        console.error('❌ MongoDB Atlas Save Error:', dbError.message);
+      });
+    } else {
+      console.warn(`⚠️ MongoDB not connected (readyState: ${mongoose.connection.readyState}). Skipping DB save for ${fullName} (${phone}).`);
+    }
 
     return res.status(201).json({
       success: true,
