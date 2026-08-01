@@ -349,12 +349,12 @@ exports.createReport = async (req, res) => {
       defects: scoreResults.defects
     });
 
-    try {
-      await newReport.save();
+    // Save report to MongoDB Atlas asynchronously in background without blocking HTTP response
+    newReport.save().then(() => {
       console.log(`✅ User Lead Saved to MongoDB Atlas: ${fullName} (${phone}) | ID: ${newReport._id}`);
-    } catch (dbError) {
+    }).catch((dbError) => {
       console.error('❌ MongoDB Atlas Save Error:', dbError.message);
-    }
+    });
 
     return res.status(201).json({
       success: true,
