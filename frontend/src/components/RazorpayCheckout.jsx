@@ -61,11 +61,11 @@ export const RazorpayCheckout = ({
         throw new Error(orderResponse.data?.message || 'Failed to initialize payment order on server.');
       }
 
-      const { order_id, amount: orderAmount, currency: orderCurrency, key_id } = orderResponse.data.data;
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || key_id || 'rzp_test_TKQdfHnsqnuWpw';
 
       // 3. Configure Razorpay Modal Options
       const options = {
-        key: key_id,
+        key: razorpayKey,
         amount: orderAmount,
         currency: orderCurrency,
         name: title,

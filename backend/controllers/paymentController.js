@@ -9,7 +9,9 @@ const getRazorpayInstance = () => {
   const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
   if (!key_id || !key_secret || key_id === 'your_razorpay_key_id') {
-    throw new Error('Razorpay API keys (RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET) are not properly configured in environment variables.');
+    const err = new Error('Razorpay API keys (RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET) are missing or default in environment variables.');
+    err.statusCode = 401;
+    throw err;
   }
 
   return new Razorpay({
@@ -20,23 +22,31 @@ const getRazorpayInstance = () => {
 
 /**
  * Controller to create a new Razorpay Order.
- * POST /api/payments/create-order
+ * Endpoints: POST /api/create-order or POST /api/payments/create-order
+ * Minimum amount: 100 paise (₹1.00)
  */
 exports.createOrder = async (req, res) => {
   try {
     const { amount = 499, currency = 'INR', receipt, notes = {} } = req.body;
 
-    // Razorpay expects amount in smallest currency unit (e.g. Paise for INR, 1 INR = 100 Paise)
-    // If amount is passed in Rupees (e.g. 499), convert to Paise (49900).
-    // If amount is already in Paise (>1000 and integer), keep as is.
-    const amountInPaise = Math.round(Number(amount) < 1000 ? Number(amount) * 100 : Number(amount));
+    // Convert amount to paise if passed in Rupees (e.g. 499 -> 49900 Paise)
+    const rawAmount = Number(amount);
+    const amountInPaise = Math.round(rawAmount < 1000 ? rawAmount * 100 : rawAmount);
+
+    // Validation: Minimum amount 100 paise (₹1.00)
+    if (isNaN(amountInPaise) || amountInPaise < 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid amount: Minimum amount must be at least 100 paise (₹1.00)'
+      });
+    }
 
     const razorpay = getRazorpayInstance();
 
     const options = {
       amount: amountInPaise,
-      currency: currency.toUpperCase(),
-      receipt: receipt || `rcpt_vastu_${Date.now().toString().slice(-8)}`,
+      currency: (currency || 'INR').toUpperCase(),
+      receipt: receipt || `rcpt_${Date.now().toString().slice(-10)}`,
       notes: {
         service: 'Vastu Score Architectural Consultation Report',
         ...notes
@@ -50,6 +60,10 @@ exports.createOrder = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Razorpay order created successfully',
+      order_id: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      key_id: process.env.RAZORPAY_KEY_ID,
       data: {
         order_id: order.id,
         amount: order.amount,
@@ -60,7 +74,10 @@ exports.createOrder = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Create Razorpay Order Error:', error);
-    return res.status(500).json({
+
+    const statusCode = error.statusCode || error.status || (error.message?.includes('auth') ? 401 : 500);
+
+    return res.status(statusCode).json({
       success: false,
       message: error.message || 'Failed to create Razorpay order'
     });
@@ -69,19 +86,10 @@ exports.createOrder = async (req, res) => {
 
 /**
  * Controller to verify Razorpay Payment Signature.
- * POST /api/payments/verify-payment
+ * Endpoints: POST /api/verify-payment or POST /api/payments/verify-payment
  *
- * SIGNATURE VERIFICATION EXPLANATION:
- * When a payment completes on the client modal, Razorpay passes back 3 values:
- * 1. razorpay_order_id
- * 2. razorpay_payment_id
- * 3. razorpay_signature
- *
- * To ensure the payment response has NOT been tampered with or forged:
- * Step A: Combine `razorpay_order_id` and `razorpay_payment_id` separated by a pipe '|'.
- * Step B: Calculate an HMAC SHA256 signature of this combined string using your secret `RAZORPAY_KEY_SECRET`.
- * Step C: Compare your calculated signature with `razorpay_signature` received from Razorpay.
- * If signatures match, the payment is authentic and verified!
+ * ALGORITHM: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
+ * Compare generated signature with razorpay_signature.
  */
 exports.verifyPayment = async (req, res) => {
   try {
@@ -102,24 +110,29 @@ exports.verifyPayment = async (req, res) => {
     if (!secret || secret === 'your_razorpay_key_secret') {
       return res.status(500).json({
         success: false,
-        message: 'RAZORPAY_KEY_SECRET is not configured on the server.'
+        message: 'RAZORPAY_KEY_SECRET is missing or not configured on the server.'
       });
     }
 
-    // Step A: Construct the raw payload string
+    // Step 1: Construct the raw payload string: order_id + "|" + payment_id
     const body = `${razorpay_order_id}|${razorpay_payment_id}`;
 
-    // Step B: Generate HMAC-SHA256 signature using secret key
+    // Step 2: Generate HMAC-SHA256 signature using KEY_SECRET
     const expectedSignature = crypto
       .createHmac('sha256', secret)
       .update(body.toString())
       .digest('hex');
 
-    // Step C: Secure constant-time comparison to prevent timing attacks
-    const isAuthentic = crypto.timingSafeEqual(
-      Buffer.from(expectedSignature, 'utf-8'),
-      Buffer.from(razorpay_signature, 'utf-8')
-    );
+    // Step 3: Secure constant-time comparison to prevent timing attacks
+    let isAuthentic = false;
+    try {
+      isAuthentic = crypto.timingSafeEqual(
+        Buffer.from(expectedSignature, 'utf-8'),
+        Buffer.from(razorpay_signature, 'utf-8')
+      );
+    } catch {
+      isAuthentic = false;
+    }
 
     if (isAuthentic) {
       console.log(`✅ Razorpay Payment Verified Successfully! OrderID: ${razorpay_order_id} | PaymentID: ${razorpay_payment_id}`);
@@ -137,7 +150,7 @@ exports.verifyPayment = async (req, res) => {
       console.warn(`⚠️ Invalid Payment Signature for OrderID: ${razorpay_order_id}`);
       return res.status(400).json({
         success: false,
-        message: 'Payment verification failed: Invalid HMAC signature'
+        message: 'Payment verification failed: Signature mismatch'
       });
     }
 
